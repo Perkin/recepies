@@ -1,31 +1,54 @@
-import { SortIcon } from '../icons'
+const SORT_OPTIONS = [
+  { value: 'createdAt', label: 'Дата добавления' },
+  { value: 'lastCookedAt', label: 'Дата последней готовки' },
+  { value: 'cookCount', label: 'Число приготовлений' },
+]
 
-export function SortControls({ sortField, sortDirection, onSortFieldChange, onSortDirectionToggle }) {
+function SortDirectionIcon({ direction }) {
+  const rotationClass = direction === 'asc' ? 'rotate-180' : ''
+
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      aria-hidden="true"
+      className={`h-4 w-4 shrink-0 text-amber-300 transition-transform ${rotationClass}`}
+    >
+      <path
+        d="M10 15.5a1 1 0 0 1-.7-.3l-4-4a1 1 0 1 1 1.4-1.4l2.3 2.3V5a1 1 0 1 1 2 0v7.1l2.3-2.3a1 1 0 0 1 1.4 1.4l-4 4a1 1 0 0 1-.7.3Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+export function SortControls({ sortField, sortDirection, onSortChange }) {
   return (
     <section
-      className="mt-5 flex flex-wrap items-end gap-3 rounded-2xl border border-slate-700/60 bg-slate-900/40 p-4"
+      className="mt-5 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-700/60 bg-slate-900/40 p-4"
       aria-label="Сортировка списка рецептов"
     >
-      <label className="space-y-1.5">
-        <span className="text-xs uppercase tracking-wider text-slate-300">Сортировка</span>
-        <div className="relative">
-          <SortIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <select
-            value={sortField}
-            onChange={(event) => onSortFieldChange(event.target.value)}
-            className="input-base appearance-none pl-9 pr-8"
-          >
-            <option value="createdAt">Дата добавления</option>
-            <option value="lastCookedAt">Дата последней готовки</option>
-            <option value="cookCount">Число приготовлений</option>
-          </select>
-        </div>
-      </label>
+      <span className="mr-1 text-xs uppercase tracking-wider text-slate-300">Сортировка:</span>
 
-      <button type="button" onClick={onSortDirectionToggle} className="btn-primary">
-        <SortIcon className="h-4 w-4" />
-        {sortDirection === 'asc' ? 'По возрастанию' : 'По убыванию'}
-      </button>
+      {SORT_OPTIONS.map((option) => {
+        const isActive = option.value === sortField
+
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onSortChange(option.value)}
+            className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm transition ${
+              isActive
+                ? 'border-amber-300/80 bg-amber-300/10 text-amber-100'
+                : 'border-slate-600/60 bg-slate-800/70 text-slate-200 hover:border-slate-500 hover:bg-slate-800'
+            }`}
+            aria-pressed={isActive}
+          >
+            <span>{option.label}</span>
+            {isActive ? <SortDirectionIcon direction={sortDirection} /> : null}
+          </button>
+        )
+      })}
     </section>
   )
 }
