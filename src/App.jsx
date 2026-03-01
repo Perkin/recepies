@@ -25,10 +25,14 @@ export default function App() {
       <SortControls
         sortField={sortField}
         sortDirection={sortDirection}
-        onSortFieldChange={setSortField}
-        onSortDirectionToggle={() =>
-          setSortDirection((prevDirection) => (prevDirection === 'asc' ? 'desc' : 'asc'))
-        }
+        onSortChange={(nextSortField) => {
+          if (nextSortField === sortField) {
+            setSortDirection((prevDirection) => (prevDirection === 'asc' ? 'desc' : 'asc'))
+            return
+          }
+
+          setSortField(nextSortField)
+        }}
       />
 
       <main className="mt-4 grid gap-4">
