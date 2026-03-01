@@ -1,126 +1,45 @@
-:root {
-  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-  color: #f7f7fb;
-  background-color: #101420;
-  line-height: 1.45;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply min-h-screen bg-[#101420] text-slate-100 antialiased;
+    background-image:
+      radial-gradient(circle at top right, rgba(82, 103, 158, 0.24), transparent 40%),
+      radial-gradient(circle at top left, rgba(245, 195, 77, 0.16), transparent 30%);
+    font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  }
 }
 
-* {
-  box-sizing: border-box;
-}
+@layer components {
+  .glass-panel {
+    @apply bg-gradient-to-br from-slate-900/85 to-slate-800/85 backdrop-blur-sm;
+  }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-}
+  .input-base {
+    @apply rounded-xl border border-slate-600/80 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 outline-none transition;
+  }
 
-.app {
-  max-width: 880px;
-  margin: 0 auto;
-  padding: 2rem 1rem 3rem;
-}
+  .input-base:focus {
+    @apply border-indigo-300/60 ring-2 ring-indigo-300/20;
+  }
 
-.app__header h1 {
-  margin: 0.2rem 0 0.6rem;
-}
+  .btn-primary {
+    @apply inline-flex items-center gap-2 rounded-xl border border-slate-600 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-100 transition hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-700;
+  }
 
-.app__eyebrow {
-  margin: 0;
-  text-transform: uppercase;
-  color: #91a0c2;
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-}
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 rounded-xl border border-indigo-300/40 bg-indigo-950/40 px-4 py-2 text-sm font-medium text-slate-100 transition hover:-translate-y-0.5 hover:border-indigo-300/70 hover:bg-indigo-900/35;
+  }
 
-.controls {
-  margin: 1.6rem 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: end;
-}
+  .meta-row {
+    @apply flex items-center justify-between gap-3 border-b border-dashed border-slate-700/80 pb-1.5 text-slate-300;
+  }
 
-label,
-button,
-select {
-  font-size: 0.95rem;
-}
-
-select,
-button {
-  border-radius: 10px;
-  border: 1px solid #41507a;
-  padding: 0.55rem 0.8rem;
-  background: #1b2336;
-  color: #f7f7fb;
-}
-
-.recipe-list {
-  display: grid;
-  gap: 1rem;
-}
-
-.recipe-card {
-  border: 1px solid #2c3550;
-  border-radius: 14px;
-  padding: 1rem;
-  background: linear-gradient(145deg, #12192a, #171f31);
-}
-
-.recipe-card h2 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-
-.recipe-card__title-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.badge {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: #101420;
-  background: #f6e58d;
-  padding: 0.2rem 0.5rem;
-  border-radius: 999px;
-}
-
-.recipe-card dl {
-  margin: 0.85rem 0 0;
-  display: grid;
-  gap: 0.4rem;
-}
-
-.recipe-card dl div {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.6rem;
-  border-bottom: 1px dashed #334065;
-  padding-bottom: 0.2rem;
-}
-
-.recipe-card dt {
-  color: #a8b4d3;
-}
-
-.recipe-card dd {
-  margin: 0;
-}
-
-.recipe-card__actions {
-  display: flex;
-  flex-wrap: wrap;
-  margin-top: 0.9rem;
-  gap: 0.6rem;
-}
-
-@media (max-width: 680px) {
-  .recipe-card__title-row {
-    flex-direction: column;
-    align-items: flex-start;
+  .meta-term {
+    @apply inline-flex items-center gap-2 text-slate-400;
   }
 }
