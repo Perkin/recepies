@@ -35,8 +35,20 @@
     @apply inline-flex items-center gap-2 rounded-xl border border-indigo-300/40 bg-indigo-950/40 px-4 py-2 text-sm font-medium text-slate-100 transition hover:-translate-y-0.5 hover:border-indigo-300/70 hover:bg-indigo-900/35;
   }
 
+  .btn-compact {
+    @apply rounded-lg px-3 py-1.5 text-xs;
+  }
+
+  .placeholder-box {
+    @apply rounded-lg border border-slate-700/70 bg-slate-900/55 p-2.5;
+  }
+
+  .placeholder-title {
+    @apply text-[11px] font-semibold uppercase tracking-wide text-slate-400;
+  }
+
   .meta-row {
-    @apply flex items-center justify-between gap-3 border-b border-dashed border-slate-700/80 pb-1.5 text-slate-300;
+    @apply flex items-center justify-between gap-3 border-b border-dashed border-slate-700/80 pb-1 text-slate-300;
   }
 
   .meta-term {
