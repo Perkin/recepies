@@ -3,7 +3,7 @@ import { formatDate } from '../../utils/date'
 
 export function RecipeCard({ recipe, isArchiveView, onCooked, onArchive, onRestore, onEdit, onDelete }) {
   return (
-    <article className="rounded-xl border border-slate-700/60 bg-gradient-to-br from-slate-900/95 to-slate-800/90 p-4 shadow-lg shadow-black/20">
+    <article className="rounded-xl border border-slate-700/60 bg-gradient-to-br from-slate-900/95 to-slate-800/90 p-3 shadow-lg shadow-black/20 sm:p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <h2 className="text-lg font-semibold leading-tight text-slate-100">{recipe.title}</h2>
         {recipe.isQueued ? (
@@ -34,6 +34,11 @@ export function RecipeCard({ recipe, isArchiveView, onCooked, onArchive, onResto
         </section>
       </div>
 
+      <section className="placeholder-box mt-2">
+        <p className="placeholder-title">Инструкции</p>
+        <pre className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-300">{recipe.instructions}</pre>
+      </section>
+
       <dl className="mt-3 grid gap-1.5 text-xs">
         <div className="meta-row">
           <dt className="meta-term">
@@ -58,26 +63,26 @@ export function RecipeCard({ recipe, isArchiveView, onCooked, onArchive, onResto
         </div>
       </dl>
 
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         {isArchiveView ? null : (
-          <button type="button" className="btn-primary btn-compact" onClick={onCooked}>
+          <button type="button" className="btn-primary btn-compact justify-center" onClick={onCooked}>
             <CheckIcon className="h-3.5 w-3.5" />
             Приготовлено
           </button>
         )}
         {isArchiveView ? (
-          <button type="button" className="btn-secondary btn-compact" onClick={onRestore}>
+          <button type="button" className="btn-secondary btn-compact justify-center" onClick={onRestore}>
             <ArchiveIcon className="h-3.5 w-3.5" />Из архива
           </button>
         ) : (
-          <button type="button" className="btn-secondary btn-compact" onClick={onArchive}>
+          <button type="button" className="btn-secondary btn-compact justify-center" onClick={onArchive}>
             <ArchiveIcon className="h-3.5 w-3.5" />В архив
           </button>
         )}
-        <button type="button" className="btn-secondary btn-compact" onClick={onEdit}>
+        <button type="button" className="btn-secondary btn-compact justify-center" onClick={onEdit}>
           Изменить
         </button>
-        <button type="button" className="btn-secondary btn-compact" onClick={onDelete}>
+        <button type="button" className="btn-secondary btn-compact justify-center" onClick={onDelete}>
           Удалить
         </button>
       </div>

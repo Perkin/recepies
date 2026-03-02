@@ -80,6 +80,7 @@ export default function App() {
   const [showArchivedOnly, setShowArchivedOnly] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [formValues, setFormValues] = useState(emptyForm)
+  const [isFormVisible, setIsFormVisible] = useState(false)
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes))
@@ -98,9 +99,17 @@ export default function App() {
     })
   }, [recipes, showArchivedOnly, sortDirection, sortField])
 
+  const openCreateForm = () => {
+    setEditingId(null)
+    setFormValues(emptyForm)
+    setIsFormVisible(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const resetForm = () => {
     setEditingId(null)
     setFormValues(emptyForm)
+    setIsFormVisible(false)
   }
 
   const submitForm = (event) => {
@@ -140,77 +149,79 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 pb-14 pt-9 text-slate-100">
-      <AppHeader />
+    <div className="mx-auto max-w-5xl px-3 pb-14 pt-5 text-slate-100 sm:px-4 sm:pt-9">
+      <AppHeader onAddRecipe={openCreateForm} isFormVisible={isFormVisible} />
 
-      <section className="mt-5 rounded-2xl border border-slate-700/60 bg-slate-900/40 p-4">
-        <h2 className="text-base font-semibold text-slate-100">
-          {editingId ? 'Редактирование рецепта' : 'Новый рецепт'}
-        </h2>
-        <form className="mt-3 grid gap-2" onSubmit={submitForm}>
-          <input
-            className="input-base"
-            placeholder="Название"
-            required
-            value={formValues.title}
-            onChange={(event) => setFormValues((prev) => ({ ...prev, title: event.target.value }))}
-          />
-          <textarea
-            className="input-base min-h-20"
-            placeholder="Краткое описание"
-            required
-            value={formValues.description}
-            onChange={(event) =>
-              setFormValues((prev) => ({ ...prev, description: event.target.value }))
-            }
-          />
-          <textarea
-            className="input-base min-h-24"
-            placeholder="Ингредиенты"
-            required
-            value={formValues.ingredients}
-            onChange={(event) =>
-              setFormValues((prev) => ({ ...prev, ingredients: event.target.value }))
-            }
-          />
-          <textarea
-            className="input-base min-h-24"
-            placeholder="Инструкции"
-            required
-            value={formValues.instructions}
-            onChange={(event) =>
-              setFormValues((prev) => ({ ...prev, instructions: event.target.value }))
-            }
-          />
-          <input
-            className="input-base"
-            placeholder="Ссылка на видео (опционально)"
-            value={formValues.videoUrl}
-            onChange={(event) => setFormValues((prev) => ({ ...prev, videoUrl: event.target.value }))}
-          />
-          <label className="inline-flex items-center gap-2 text-sm text-slate-200">
+      {isFormVisible ? (
+        <section className="mt-5 rounded-2xl border border-slate-700/60 bg-slate-900/40 p-3 sm:p-4">
+          <h2 className="text-base font-semibold text-slate-100">
+            {editingId ? 'Редактирование рецепта' : 'Новый рецепт'}
+          </h2>
+          <form className="mt-3 grid gap-2" onSubmit={submitForm}>
             <input
-              type="checkbox"
-              checked={formValues.isQueued}
+              className="input-base"
+              placeholder="Название"
+              required
+              value={formValues.title}
+              onChange={(event) => setFormValues((prev) => ({ ...prev, title: event.target.value }))}
+            />
+            <textarea
+              className="input-base min-h-20"
+              placeholder="Краткое описание"
+              required
+              value={formValues.description}
               onChange={(event) =>
-                setFormValues((prev) => ({ ...prev, isQueued: event.target.checked }))
+                setFormValues((prev) => ({ ...prev, description: event.target.value }))
               }
             />
-            Добавить в очередь
-          </label>
+            <textarea
+              className="input-base min-h-24"
+              placeholder="Ингредиенты"
+              required
+              value={formValues.ingredients}
+              onChange={(event) =>
+                setFormValues((prev) => ({ ...prev, ingredients: event.target.value }))
+              }
+            />
+            <textarea
+              className="input-base min-h-24"
+              placeholder="Инструкции"
+              required
+              value={formValues.instructions}
+              onChange={(event) =>
+                setFormValues((prev) => ({ ...prev, instructions: event.target.value }))
+              }
+            />
+            <input
+              className="input-base"
+              placeholder="Ссылка на видео (опционально)"
+              value={formValues.videoUrl}
+              onChange={(event) =>
+                setFormValues((prev) => ({ ...prev, videoUrl: event.target.value }))
+              }
+            />
+            <label className="inline-flex items-center gap-2 text-sm text-slate-200">
+              <input
+                type="checkbox"
+                checked={formValues.isQueued}
+                onChange={(event) =>
+                  setFormValues((prev) => ({ ...prev, isQueued: event.target.checked }))
+                }
+              />
+              Добавить в очередь
+            </label>
 
-          <div className="flex flex-wrap gap-2">
-            <button type="submit" className="btn-primary">
-              {editingId ? 'Сохранить' : 'Добавить'}
-            </button>
-            {editingId ? (
-              <button type="button" className="btn-secondary" onClick={resetForm}>
-                Отменить
+            <div className="flex flex-wrap gap-2">
+              <button type="submit" className="btn-primary">
+                {editingId ? 'Сохранить' : 'Добавить'}
               </button>
-            ) : null}
-          </div>
-        </form>
-      </section>
+              <button type="button" className="btn-secondary" onClick={resetForm}>
+                {editingId ? 'Отменить' : 'Скрыть форму'}
+              </button>
+            </div>
+          </form>
+        </section>
+      ) : null}
 
       <SortControls
         sortField={sortField}
@@ -264,6 +275,7 @@ export default function App() {
             }}
             onEdit={() => {
               setEditingId(recipe.id)
+              setIsFormVisible(true)
               setFormValues({
                 title: recipe.title,
                 description: recipe.description,

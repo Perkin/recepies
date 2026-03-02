@@ -20,7 +20,7 @@
   }
 
   .input-base {
-    @apply rounded-xl border border-slate-600/80 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 outline-none transition;
+    @apply w-full rounded-xl border border-slate-600/80 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 outline-none transition;
   }
 
   .input-base:focus {
@@ -53,5 +53,13 @@
 
   .meta-term {
     @apply inline-flex items-center gap-2 text-slate-400;
+  }
+}
+
+@media (max-width: 640px) {
+  .meta-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25rem;
   }
 }
