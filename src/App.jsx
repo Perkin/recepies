@@ -5,6 +5,7 @@ import { SortControls } from './components/recipe/SortControls'
 import { recipeSorters } from './utils/recipeSorters.js'
 
 const STORAGE_KEY = 'recipes'
+const LIGHTWEIGHT_VIEW_STORAGE_KEY = 'recipes-lightweight-view'
 
 const defaultRecipes = [
   {
@@ -78,6 +79,9 @@ export default function App() {
   const [sortField, setSortField] = useState('createdAt')
   const [sortDirection, setSortDirection] = useState('desc')
   const [showArchivedOnly, setShowArchivedOnly] = useState(false)
+  const [isLightweightView, setIsLightweightView] = useState(() => {
+    return localStorage.getItem(LIGHTWEIGHT_VIEW_STORAGE_KEY) === 'true'
+  })
   const [editingId, setEditingId] = useState(null)
   const [formValues, setFormValues] = useState(emptyForm)
   const [isFormVisible, setIsFormVisible] = useState(false)
@@ -85,6 +89,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes))
   }, [recipes])
+
+  useEffect(() => {
+    localStorage.setItem(LIGHTWEIGHT_VIEW_STORAGE_KEY, String(isLightweightView))
+  }, [isLightweightView])
 
   const visibleRecipes = useMemo(() => {
     const sorted = [...recipes].sort((a, b) => {
@@ -227,6 +235,7 @@ export default function App() {
         sortField={sortField}
         sortDirection={sortDirection}
         showArchivedOnly={showArchivedOnly}
+        isLightweightView={isLightweightView}
         onSortChange={(nextSortField) => {
           if (nextSortField === sortField) {
             setSortDirection((prevDirection) => (prevDirection === 'asc' ? 'desc' : 'asc'))
@@ -236,6 +245,7 @@ export default function App() {
           setSortField(nextSortField)
         }}
         onArchiveFilterChange={setShowArchivedOnly}
+        onLightweightViewChange={setIsLightweightView}
       />
 
       <main className="mt-4 grid gap-4">
@@ -244,6 +254,7 @@ export default function App() {
             key={recipe.id}
             recipe={recipe}
             isArchiveView={showArchivedOnly}
+            isLightweightView={isLightweightView}
             onCooked={() => {
               const today = new Date().toISOString().slice(0, 10)
               setRecipes((prev) =>
