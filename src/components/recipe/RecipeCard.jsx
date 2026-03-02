@@ -1,7 +1,7 @@
 import { ArchiveIcon, CalendarIcon, CheckIcon, FlameIcon, PotIcon } from '../icons'
 import { formatDate } from '../../utils/date'
 
-export function RecipeCard({ recipe, onCooked, onArchive, onEdit, onDelete }) {
+export function RecipeCard({ recipe, isArchiveView, onCooked, onArchive, onRestore, onEdit, onDelete }) {
   return (
     <article className="rounded-xl border border-slate-700/60 bg-gradient-to-br from-slate-900/95 to-slate-800/90 p-4 shadow-lg shadow-black/20">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -59,13 +59,21 @@ export function RecipeCard({ recipe, onCooked, onArchive, onEdit, onDelete }) {
       </dl>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        <button type="button" className="btn-primary btn-compact" onClick={onCooked}>
-          <CheckIcon className="h-3.5 w-3.5" />
-          Приготовлено
-        </button>
-        <button type="button" className="btn-secondary btn-compact" onClick={onArchive}>
-          <ArchiveIcon className="h-3.5 w-3.5" />В архив
-        </button>
+        {isArchiveView ? null : (
+          <button type="button" className="btn-primary btn-compact" onClick={onCooked}>
+            <CheckIcon className="h-3.5 w-3.5" />
+            Приготовлено
+          </button>
+        )}
+        {isArchiveView ? (
+          <button type="button" className="btn-secondary btn-compact" onClick={onRestore}>
+            <ArchiveIcon className="h-3.5 w-3.5" />Из архива
+          </button>
+        ) : (
+          <button type="button" className="btn-secondary btn-compact" onClick={onArchive}>
+            <ArchiveIcon className="h-3.5 w-3.5" />В архив
+          </button>
+        )}
         <button type="button" className="btn-secondary btn-compact" onClick={onEdit}>
           Изменить
         </button>
