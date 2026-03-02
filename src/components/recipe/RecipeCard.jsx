@@ -187,7 +187,33 @@ export function RecipeCard({
             </div>
           </div>
         </div>
-      )}
+      </dl>
+
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        {isArchiveView ? null : (
+          <button type="button" className="btn-primary btn-emphasis btn-compact justify-center" onClick={onCooked}>
+            <CheckIcon className="h-3.5 w-3.5" />
+            Приготовлено
+          </button>
+        )}
+        {isArchiveView ? (
+          <button type="button" className="btn-secondary btn-compact justify-center" onClick={onRestore}>
+            <ArchiveIcon className="h-3.5 w-3.5" />Из архива
+          </button>
+        ) : (
+          <button type="button" className="btn-secondary btn-compact justify-center" onClick={onArchive}>
+            <ArchiveIcon className="h-3.5 w-3.5" />В архив
+          </button>
+        )}
+        <button type="button" className="btn-secondary btn-compact justify-center" onClick={onEdit}>
+          <EditIcon className="h-3.5 w-3.5" />
+          Изменить
+        </button>
+        <button type="button" className="btn-secondary btn-compact justify-center" onClick={onDelete}>
+          <DeleteIcon className="h-3.5 w-3.5" />
+          Удалить
+        </button>
+      </div>
     </article>
   )
 }
