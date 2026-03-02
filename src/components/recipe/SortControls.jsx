@@ -21,7 +21,7 @@ function SortDirectionIcon({ direction }) {
   )
 }
 
-export function SortControls({ sortField, sortDirection, onSortChange }) {
+export function SortControls({ sortField, sortDirection, showArchivedOnly, onSortChange, onArchiveFilterChange }) {
   return (
     <section
       className="mt-5 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-700/60 bg-slate-900/40 p-4"
@@ -49,6 +49,15 @@ export function SortControls({ sortField, sortDirection, onSortChange }) {
           </button>
         )
       })}
+
+      <label className="ml-auto inline-flex items-center gap-2 text-sm text-slate-200">
+        <input
+          type="checkbox"
+          checked={showArchivedOnly}
+          onChange={(event) => onArchiveFilterChange(event.target.checked)}
+        />
+        Только архив
+      </label>
     </section>
   )
 }

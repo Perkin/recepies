@@ -77,6 +77,7 @@ export default function App() {
   const [recipes, setRecipes] = useState(getInitialRecipes)
   const [sortField, setSortField] = useState('createdAt')
   const [sortDirection, setSortDirection] = useState('desc')
+  const [showArchivedOnly, setShowArchivedOnly] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [formValues, setFormValues] = useState(emptyForm)
 
@@ -91,8 +92,11 @@ export default function App() {
       return sortDirection === 'asc' ? baseResult : -baseResult
     })
 
-    return sorted.filter((recipe) => !recipe.isArchived && !recipe.isDeleted)
-  }, [recipes, sortDirection, sortField])
+    return sorted.filter((recipe) => {
+      if (recipe.isDeleted) return false
+      return showArchivedOnly ? recipe.isArchived : !recipe.isArchived
+    })
+  }, [recipes, showArchivedOnly, sortDirection, sortField])
 
   const resetForm = () => {
     setEditingId(null)
@@ -211,6 +215,7 @@ export default function App() {
       <SortControls
         sortField={sortField}
         sortDirection={sortDirection}
+        showArchivedOnly={showArchivedOnly}
         onSortChange={(nextSortField) => {
           if (nextSortField === sortField) {
             setSortDirection((prevDirection) => (prevDirection === 'asc' ? 'desc' : 'asc'))
@@ -219,6 +224,7 @@ export default function App() {
 
           setSortField(nextSortField)
         }}
+        onArchiveFilterChange={setShowArchivedOnly}
       />
 
       <main className="mt-4 grid gap-4">
@@ -226,6 +232,7 @@ export default function App() {
           <RecipeCard
             key={recipe.id}
             recipe={recipe}
+            isArchiveView={showArchivedOnly}
             onCooked={() => {
               const today = new Date().toISOString().slice(0, 10)
               setRecipes((prev) =>
@@ -245,6 +252,13 @@ export default function App() {
               setRecipes((prev) =>
                 prev.map((item) =>
                   item.id === recipe.id ? { ...item, isArchived: true } : item,
+                ),
+              )
+            }}
+            onRestore={() => {
+              setRecipes((prev) =>
+                prev.map((item) =>
+                  item.id === recipe.id ? { ...item, isArchived: false } : item,
                 ),
               )
             }}
