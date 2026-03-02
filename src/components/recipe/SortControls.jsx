@@ -21,7 +21,15 @@ function SortDirectionIcon({ direction }) {
   )
 }
 
-export function SortControls({ sortField, sortDirection, showArchivedOnly, onSortChange, onArchiveFilterChange }) {
+export function SortControls({
+  sortField,
+  sortDirection,
+  showArchivedOnly,
+  isLightweightView,
+  onSortChange,
+  onArchiveFilterChange,
+  onLightweightViewChange,
+}) {
   return (
     <section
       className="mt-5 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-700/60 bg-slate-900/40 p-4"
@@ -50,14 +58,25 @@ export function SortControls({ sortField, sortDirection, showArchivedOnly, onSor
         )
       })}
 
-      <label className="ml-auto inline-flex items-center gap-2 text-sm text-slate-200">
-        <input
-          type="checkbox"
-          checked={showArchivedOnly}
-          onChange={(event) => onArchiveFilterChange(event.target.checked)}
-        />
-        Только архив
-      </label>
+      <div className="ml-auto flex flex-wrap items-center gap-4">
+        <label className="inline-flex items-center gap-2 text-sm text-slate-200">
+          <input
+            type="checkbox"
+            checked={isLightweightView}
+            onChange={(event) => onLightweightViewChange(event.target.checked)}
+          />
+          Облегченный просмотр
+        </label>
+
+        <label className="inline-flex items-center gap-2 text-sm text-slate-200">
+          <input
+            type="checkbox"
+            checked={showArchivedOnly}
+            onChange={(event) => onArchiveFilterChange(event.target.checked)}
+          />
+          Только архив
+        </label>
+      </div>
     </section>
   )
 }
