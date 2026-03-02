@@ -221,7 +221,7 @@ export default function App() {
             </label>
 
             <div className="flex flex-wrap gap-2">
-              <button type="submit" className="btn-primary">
+              <button type="submit" className="btn-primary btn-emphasis">
                 {editingId ? 'Сохранить' : 'Добавить'}
               </button>
               <button type="button" className="btn-secondary" onClick={resetForm}>

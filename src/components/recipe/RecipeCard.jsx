@@ -78,7 +78,7 @@ export function RecipeCard({
 
       <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         {isArchiveView ? null : (
-          <button type="button" className="btn-primary btn-compact justify-center" onClick={onCooked}>
+          <button type="button" className="btn-primary btn-emphasis btn-compact justify-center" onClick={onCooked}>
             <CheckIcon className="h-3.5 w-3.5" />
             Приготовлено
           </button>
