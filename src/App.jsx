@@ -211,6 +211,7 @@ export default function App() {
             <label className="inline-flex items-center gap-2 text-sm text-slate-200">
               <input
                 type="checkbox"
+                className="checkbox-base"
                 checked={formValues.isQueued}
                 onChange={(event) =>
                   setFormValues((prev) => ({ ...prev, isQueued: event.target.checked }))
