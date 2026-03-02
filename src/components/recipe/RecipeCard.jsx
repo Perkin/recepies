@@ -1,8 +1,6 @@
 import { ArchiveIcon, CalendarIcon, CheckIcon, FlameIcon, PotIcon } from '../icons'
 import { formatDate } from '../../utils/date'
 
-const ingredientsPlaceholder = `- 2 яйца\n- 1 кг свинины\n- 1 ст.ложка муки\n- Приправы по вкусу`
-
 export function RecipeCard({ recipe }) {
   return (
     <article className="rounded-xl border border-slate-700/60 bg-gradient-to-br from-slate-900/95 to-slate-800/90 p-4 shadow-lg shadow-black/20">
@@ -21,12 +19,12 @@ export function RecipeCard({ recipe }) {
         <section className="placeholder-box">
           <p className="placeholder-title">Видео рецепта</p>
           <div className="mt-2 flex h-24 items-center justify-center rounded-lg border border-dashed border-slate-600/90 bg-slate-900/70 text-center text-xs text-slate-400">
-            Здесь будет видео
+            'Здесь будет видео'
           </div>
         </section>
         <section className="placeholder-box">
-          <p className="placeholder-title">Текст рецепта</p>
-          <pre className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-300">{ingredientsPlaceholder}</pre>
+          <p className="placeholder-title">Ингредиенты</p>
+          <pre className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-300">{recipe.ingredients}</pre>
         </section>
       </div>
 

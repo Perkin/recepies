@@ -8,6 +8,8 @@ export const mockRecipes = [
     cookCount: 3,
     isQueued: true,
     isArchived: false,
+    ingredients: '- 400 г спагетти\n- 1 банка томатов в собственном соку\n- 2 зубчика чеснока\n- Пучок базилика\n- 50 г пармезана',
+    instructions: '1. Отварить пасту\n2. Обжарить чеснок\n3. Добавить томаты\n4. Подавать с базиликом'
   },
   {
     id: 'r2',
@@ -18,6 +20,8 @@ export const mockRecipes = [
     cookCount: 5,
     isQueued: false,
     isArchived: false,
+    ingredients: '- 1 спелый банан\n- 1 яйцо\n- 4 ст.л. овсяных хлопьев\n- Йогурт для подачи',
+    instructions: '1. Размять банан\n2. Смешать с яйцом и хлопьями\n3. Жарить на сковороде'
   },
   {
     id: 'r3',
@@ -28,11 +32,7 @@ export const mockRecipes = [
     cookCount: 0,
     isQueued: false,
     isArchived: false,
+    ingredients: '- 4 куриных бедра\n- 4 ст.л. соевого соуса\n- 1 ч.л. натёртого имбиря\n- 1 ст.л. мёда',
+    instructions: '1. Сделать маринад\n2. Замариновать курицу\n3. Запекать 35 минут'
   },
 ]
-
-export const recipeSorters = {
-  createdAt: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-  lastCookedAt: (a, b) => new Date(a.lastCookedAt ?? 0) - new Date(b.lastCookedAt ?? 0),
-  cookCount: (a, b) => a.cookCount - b.cookCount,
-}

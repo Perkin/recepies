@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import { AppHeader } from './components/recipe/AppHeader'
 import { RecipeCard } from './components/recipe/RecipeCard'
 import { SortControls } from './components/recipe/SortControls'
-import { mockRecipes, recipeSorters } from './data/recipes'
+import { mockRecipes } from './data/recipes'
+import { recipeSorters } from './utils/recipeSorters.js'
 
 export default function App() {
   const [sortField, setSortField] = useState('createdAt')
