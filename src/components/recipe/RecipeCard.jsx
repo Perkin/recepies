@@ -1,7 +1,7 @@
 import { ArchiveIcon, CalendarIcon, CheckIcon, FlameIcon, PotIcon } from '../icons'
 import { formatDate } from '../../utils/date'
 
-export function RecipeCard({ recipe }) {
+export function RecipeCard({ recipe, onCooked, onArchive, onEdit, onDelete }) {
   return (
     <article className="rounded-xl border border-slate-700/60 bg-gradient-to-br from-slate-900/95 to-slate-800/90 p-4 shadow-lg shadow-black/20">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -18,8 +18,14 @@ export function RecipeCard({ recipe }) {
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         <section className="placeholder-box">
           <p className="placeholder-title">Видео рецепта</p>
-          <div className="mt-2 flex h-24 items-center justify-center rounded-lg border border-dashed border-slate-600/90 bg-slate-900/70 text-center text-xs text-slate-400">
-            'Здесь будет видео'
+          <div className="mt-2 rounded-lg border border-dashed border-slate-600/90 bg-slate-900/70 p-2 text-xs text-slate-300">
+            {recipe.videoUrl ? (
+              <a href={recipe.videoUrl} target="_blank" rel="noreferrer" className="text-amber-200 underline">
+                Открыть видео
+              </a>
+            ) : (
+              'Не добавлено'
+            )}
           </div>
         </section>
         <section className="placeholder-box">
@@ -53,13 +59,18 @@ export function RecipeCard({ recipe }) {
       </dl>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        <button type="button" className="btn-primary btn-compact">
+        <button type="button" className="btn-primary btn-compact" onClick={onCooked}>
           <CheckIcon className="h-3.5 w-3.5" />
           Приготовлено
         </button>
-        <button type="button" className="btn-secondary btn-compact">
-          <ArchiveIcon className="h-3.5 w-3.5" />
-          В архив
+        <button type="button" className="btn-secondary btn-compact" onClick={onArchive}>
+          <ArchiveIcon className="h-3.5 w-3.5" />В архив
+        </button>
+        <button type="button" className="btn-secondary btn-compact" onClick={onEdit}>
+          Изменить
+        </button>
+        <button type="button" className="btn-secondary btn-compact" onClick={onDelete}>
+          Удалить
         </button>
       </div>
     </article>

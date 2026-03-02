@@ -7,6 +7,7 @@ export type Recipe = {
   cookCount: number
   isQueued: boolean
   isArchived: boolean
+  isDeleted: boolean
   videoUrl?: string
   ingredients: string
   instructions: string
