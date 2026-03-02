@@ -1,4 +1,4 @@
-import { ArchiveIcon, CalendarIcon, CheckIcon, FlameIcon, PotIcon } from '../icons'
+import { ArchiveIcon, CalendarIcon, CheckIcon, DeleteIcon, EditIcon, FlameIcon, PotIcon } from '../icons'
 import { formatDate } from '../../utils/date'
 
 export function RecipeCard({
@@ -93,9 +93,11 @@ export function RecipeCard({
           </button>
         )}
         <button type="button" className="btn-secondary btn-compact justify-center" onClick={onEdit}>
+          <EditIcon className="h-3.5 w-3.5" />
           Изменить
         </button>
         <button type="button" className="btn-secondary btn-compact justify-center" onClick={onDelete}>
+          <DeleteIcon className="h-3.5 w-3.5" />
           Удалить
         </button>
       </div>
