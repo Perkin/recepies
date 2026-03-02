@@ -17,7 +17,7 @@ export function AppHeader({ onAddRecipe, isFormVisible }) {
         </div>
         <button
           type="button"
-          className="btn-secondary w-full justify-center sm:w-auto"
+          className="btn-secondary btn-emphasis w-full justify-center sm:w-auto"
           onClick={onAddRecipe}
           disabled={isFormVisible}
         >
