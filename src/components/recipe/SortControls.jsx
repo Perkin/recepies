@@ -62,6 +62,7 @@ export function SortControls({
         <label className="inline-flex items-center gap-2 text-sm text-slate-200">
           <input
             type="checkbox"
+            className="checkbox-base"
             checked={isLightweightView}
             onChange={(event) => onLightweightViewChange(event.target.checked)}
           />
@@ -71,6 +72,7 @@ export function SortControls({
         <label className="inline-flex items-center gap-2 text-sm text-slate-200">
           <input
             type="checkbox"
+            className="checkbox-base"
             checked={showArchivedOnly}
             onChange={(event) => onArchiveFilterChange(event.target.checked)}
           />
