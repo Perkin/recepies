@@ -43,6 +43,10 @@
     @apply rounded-lg px-3 py-1.5 text-xs;
   }
 
+  .btn-danger {
+    @apply border-rose-500/70 bg-rose-600/20 text-rose-100 hover:border-rose-400 hover:bg-rose-500/30;
+  }
+
   .placeholder-box {
     @apply rounded-lg border border-slate-700/70 bg-slate-900/55 p-2.5;
   }

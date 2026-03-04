@@ -10,7 +10,7 @@ export function DeleteRecipeDialog({ recipeTitle, onCancel, onConfirm }) {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="btn-secondary border-rose-500/40 text-rose-200" onClick={onConfirm}>
+          <button type="button" className="btn-secondary btn-danger" onClick={onConfirm}>
             Удалить
           </button>
           <button type="button" className="btn-secondary" onClick={onCancel}>
