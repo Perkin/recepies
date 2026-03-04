@@ -1,14 +1,14 @@
-const CACHE_VERSION = 'recipe-flow-v2'
+const CACHE_VERSION = 'recipe-flow-v3'
 const APP_SHELL_CACHE = `app-shell-${CACHE_VERSION}`
 const RUNTIME_CACHE = `runtime-${CACHE_VERSION}`
 
 const APP_SHELL_FILES = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
-  '/icons/icon-192.svg',
-  '/icons/icon-512.svg',
-  '/icons/icon-maskable-512.svg',
+  '/recepies/',
+  '/recepies/index.html',
+  '/recepies/manifest.webmanifest',
+  '/recepies/icons/icon-192.svg',
+  '/recepies/icons/icon-512.svg',
+  '/recepies/icons/icon-maskable-512.svg',
 ]
 
 self.addEventListener('install', (event) => {
