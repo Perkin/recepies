@@ -3,6 +3,7 @@ import { ToastViewport } from './components/common/ToastViewport'
 import { AppHeader } from './components/recipe/AppHeader'
 import { AuthPanel } from './components/recipe/AuthPanel'
 import { RecipeFormSection } from './components/recipe/RecipeFormSection'
+import { DeleteRecipeDialog } from './components/recipe/DeleteRecipeDialog'
 import { RecipeList } from './components/recipe/RecipeList'
 import { RecipePagination } from './components/recipe/RecipePagination'
 import { SortControls } from './components/recipe/SortControls'
@@ -30,6 +31,7 @@ export default function App() {
   const [isAuthBusy, setIsAuthBusy] = useState(false)
   const [currentUserEmail, setCurrentUserEmail] = useState(null)
   const [authModalMode, setAuthModalMode] = useState(null)
+  const [recipePendingDeletion, setRecipePendingDeletion] = useState(null)
 
   const addToast = useCallback((message, type = 'info') => {
     const id = crypto.randomUUID()
@@ -298,20 +300,26 @@ export default function App() {
   }
 
   const handleDelete = (recipe) => {
-    const isConfirmed = window.confirm(`Удалить рецепт «${recipe.title}»?`)
+    setRecipePendingDeletion(recipe)
+  }
 
-    if (!isConfirmed) {
+  const handleDeleteConfirmed = () => {
+    if (!recipePendingDeletion) {
       return
     }
 
     const now = new Date().toISOString()
     setRecipes((prev) =>
-      prev.map((item) => (item.id === recipe.id ? { ...item, deletedAt: now, updatedAt: now } : item)),
+      prev.map((item) =>
+        item.id === recipePendingDeletion.id ? { ...item, deletedAt: now, updatedAt: now } : item,
+      ),
     )
 
-    if (editingId === recipe.id) {
+    if (editingId === recipePendingDeletion.id) {
       closeForm()
     }
+
+    setRecipePendingDeletion(null)
   }
 
   return (
@@ -334,6 +342,13 @@ export default function App() {
           onClose={() => setAuthModalMode(null)}
           onSignIn={handleSignIn}
           onSignUp={handleSignUp}
+        />
+      ) : null}
+      {recipePendingDeletion ? (
+        <DeleteRecipeDialog
+          recipeTitle={recipePendingDeletion.title}
+          onCancel={() => setRecipePendingDeletion(null)}
+          onConfirm={handleDeleteConfirmed}
         />
       ) : null}
 
