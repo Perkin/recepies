@@ -200,14 +200,22 @@ export default function App() {
                 setFormValues((prev) => ({ ...prev, instructions: event.target.value }))
               }
             />
-            <input
-              className="input-base"
-              placeholder="Ссылка на видео (опционально)"
-              value={formValues.videoUrl}
-              onChange={(event) =>
-                setFormValues((prev) => ({ ...prev, videoUrl: event.target.value }))
-              }
-            />
+            <div>
+              <input
+                className="input-base"
+                placeholder="Ссылка на видео (YouTube, VK Видео, RuTube или прямой .mp4, опционально)"
+                value={formValues.videoUrl}
+                onChange={(event) =>
+                  setFormValues((prev) => ({ ...prev, videoUrl: event.target.value }))
+                }
+              />
+              <p className="mt-1 text-xs text-slate-400">
+                Для YouTube превью подтянется автоматически. Для VK Видео ссылка должна содержать формат вида
+                <span className="mx-1 font-mono text-slate-300">video-123_456</span>
+                или
+                <span className="mx-1 font-mono text-slate-300">video_ext.php?oid=...&id=...</span>. Для RuTube подойдут ссылки формата <span className="mx-1 font-mono text-slate-300">rutube.ru/video/&lt;id&gt;/</span>.
+              </p>
+            </div>
             <label className="inline-flex items-center gap-2 text-sm text-slate-200">
               <input
                 type="checkbox"

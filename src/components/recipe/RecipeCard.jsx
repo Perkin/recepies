@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ArchiveIcon, CalendarIcon, CheckIcon, DeleteIcon, EditIcon, FlameIcon, PotIcon, VideoUnavailableIcon } from '../icons'
 import { formatDate } from '../../utils/date'
+import { parseRecipeVideo } from '../../utils/video'
 
 export function RecipeCard({
   recipe,
@@ -17,6 +18,8 @@ export function RecipeCard({
 
   const borderClass = recipe.isQueued ? 'border-amber-300/70' : 'border-slate-700/60'
   const lastCookedCompact = recipe.lastCookedAt ? formatDate(recipe.lastCookedAt) : '—'
+  const parsedVideo = useMemo(() => parseRecipeVideo(recipe.videoUrl?.trim() ?? ''), [recipe.videoUrl])
+  const [isVideoStarted, setIsVideoStarted] = useState(false)
 
   const handleLightweightClick = () => {
     if (!isLightweightView) {
@@ -58,14 +61,60 @@ export function RecipeCard({
                 <p className="placeholder-title">Видео рецепта</p>
                 <div className="mt-2 flex justify-center rounded-lg border border-dashed border-slate-600/90 bg-slate-900/70 p-2 text-xs text-slate-300">
                   {recipe.videoUrl ? (
-                    <video
-                      controls
-                      preload="metadata"
-                      className="h-[160px] w-[240px] max-w-full rounded-md bg-slate-950 sm:h-[180px] sm:w-[320px]"
-                    >
-                      <source src={recipe.videoUrl} />
-                      Ваш браузер не поддерживает видео.
-                    </video>
+                    <div className="relative h-[160px] w-[240px] max-w-full rounded-md bg-slate-950 sm:h-[180px] sm:w-[320px]">
+                      {parsedVideo.type === 'direct' ? (
+                        <video
+                          controls
+                          preload="metadata"
+                          className="h-full w-full rounded-md bg-slate-950"
+                        >
+                          <source src={parsedVideo.sourceUrl} />
+                          Ваш браузер не поддерживает видео.
+                        </video>
+                      ) : parsedVideo.type === 'youtube' || parsedVideo.type === 'vk' || parsedVideo.type === 'rutube' ? (
+                        isVideoStarted ? (
+                          <iframe
+                            src={parsedVideo.autoplayEmbedUrl}
+                            title={`Видео рецепта: ${recipe.title}`}
+                            className="h-full w-full rounded-md border-0"
+                            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                            allowFullScreen
+                            loading="lazy"
+                            referrerPolicy="strict-origin-when-cross-origin"
+                          />
+                        ) : (
+                          <button
+                            type="button"
+                            className="group relative h-full w-full overflow-hidden rounded-md border border-slate-700 bg-slate-950 text-slate-100"
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              setIsVideoStarted(true)
+                            }}
+                          >
+                            {parsedVideo.thumbnailUrl ? (
+                              <img
+                                src={parsedVideo.thumbnailUrl}
+                                alt={`Превью видео: ${recipe.title}`}
+                                className="h-full w-full object-cover opacity-90 transition group-hover:opacity-100"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center bg-slate-900/90 text-xs text-slate-300">
+                                Нажмите, чтобы запустить видео
+                              </div>
+                            )}
+                            <span className="absolute inset-0 flex items-center justify-center">
+                              <span className="rounded-full bg-black/65 px-3 py-2 text-xs font-semibold tracking-wide text-white">▶ Смотреть</span>
+                            </span>
+                          </button>
+                        )
+                      ) : (
+                        <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-md border border-slate-700 bg-slate-950/80 text-slate-400">
+                          <VideoUnavailableIcon className="h-8 w-8" />
+                          <span className="px-3 text-center">Неподдерживаемая ссылка на видео</span>
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <div className="flex h-[160px] w-[240px] max-w-full flex-col items-center justify-center gap-2 rounded-md border border-slate-700 bg-slate-950/80 text-slate-400 sm:h-[180px] sm:w-[320px]">
                       <VideoUnavailableIcon className="h-8 w-8" />
