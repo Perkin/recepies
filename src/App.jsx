@@ -33,6 +33,7 @@ export default function App() {
   const [toasts, setToasts] = useState([])
   const [isAuthBusy, setIsAuthBusy] = useState(false)
   const [currentUserEmail, setCurrentUserEmail] = useState(null)
+  const [authModalMode, setAuthModalMode] = useState(null)
 
 
   const addToast = useCallback((message, type = 'info') => {
@@ -235,6 +236,7 @@ export default function App() {
       const sessionUser = data.user ?? data.session?.user ?? null
       setCurrentUserEmail(sessionUser?.email ?? email)
       addToast('Supabase auth: вход выполнен', 'success')
+      setAuthModalMode(null)
       await runSync()
     } catch (error) {
       addToast(`Supabase auth: ${error.message ?? 'Не удалось войти'}`, 'error')
@@ -249,6 +251,7 @@ export default function App() {
     try {
       await signUp(email, password)
       addToast('Supabase auth: регистрация выполнена. Подтвердите email, если включено подтверждение.', 'success')
+      setAuthModalMode(null)
     } catch (error) {
       addToast(`Supabase auth: ${error.message ?? 'Не удалось зарегистрироваться'}`, 'error')
     } finally {
@@ -417,14 +420,24 @@ export default function App() {
     <div className="mx-auto max-w-5xl px-3 pb-14 pt-5 text-slate-100 sm:px-4 sm:pt-9">
       <ToastViewport toasts={toasts} onDismiss={dismissToast} />
 
-      <AppHeader onAddRecipe={openCreateForm} isFormVisible={isFormVisible} />
-      <AuthPanel
+      <AppHeader
+        onAddRecipe={openCreateForm}
+        isFormVisible={isFormVisible}
         userEmail={currentUserEmail}
-        isBusy={isAuthBusy}
-        onSignIn={handleSignIn}
-        onSignUp={handleSignUp}
+        isAuthBusy={isAuthBusy}
+        onOpenSignIn={() => setAuthModalMode('signin')}
+        onOpenSignUp={() => setAuthModalMode('signup')}
         onSignOut={handleSignOut}
       />
+      {authModalMode ? (
+        <AuthPanel
+          mode={authModalMode}
+          isBusy={isAuthBusy}
+          onClose={() => setAuthModalMode(null)}
+          onSignIn={handleSignIn}
+          onSignUp={handleSignUp}
+        />
+      ) : null}
 
       {isFormVisible ? (
         <RecipeFormSection
