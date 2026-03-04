@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ToastViewport } from './components/common/ToastViewport'
 import { AppHeader } from './components/recipe/AppHeader'
 import { AuthPanel } from './components/recipe/AuthPanel'
@@ -6,52 +6,14 @@ import { RecipeFormSection } from './components/recipe/RecipeFormSection'
 import { RecipeList } from './components/recipe/RecipeList'
 import { RecipePagination } from './components/recipe/RecipePagination'
 import { SortControls } from './components/recipe/SortControls'
-import { emptyRecipeForm, RECIPES_PER_PAGE } from './constants/recipes'
+import { emptyRecipeForm } from './constants/recipes'
+import { useRecipePagination } from './hooks/useRecipePagination'
+import { useRecipeSync } from './hooks/useRecipeSync'
 import { recipeRepository } from './repositories/recipeRepository'
-import { recipeSorters } from './utils/recipeSorters.js'
 import { getInitialPageFromUrl, setPageInUrl } from './utils/pagination'
-import { signIn, signOut, signUp, supabase, syncRecipes } from './utils/supabase'
-
-function areRecipesEqual(left, right) {
-  if (left === right) {
-    return true
-  }
-
-  if (left.length !== right.length) {
-    return false
-  }
-
-  return left.every((recipe, index) => {
-    const other = right[index]
-
-    if (!other) {
-      return false
-    }
-
-    return (
-      recipe.id === other.id &&
-      recipe.title === other.title &&
-      recipe.description === other.description &&
-      recipe.ingredients === other.ingredients &&
-      recipe.instructions === other.instructions &&
-      recipe.videoUrl === other.videoUrl &&
-      recipe.cookCount === other.cookCount &&
-      recipe.isArchived === other.isArchived &&
-      recipe.isQueued === other.isQueued &&
-      recipe.createdAt === other.createdAt &&
-      recipe.updatedAt === other.updatedAt &&
-      recipe.lastCookedAt === other.lastCookedAt &&
-      recipe.deletedAt === other.deletedAt
-    )
-  })
-}
 
 export default function App() {
   const recipeListRef = useRef(null)
-  const syncTimeoutRef = useRef(null)
-  const isSyncInProgressRef = useRef(false)
-  const hasShownSignedOutToastRef = useRef(false)
-  const recipesRevisionRef = useRef(0)
 
   const [recipes, setRecipes] = useState(() => recipeRepository.getRecipes())
   const [currentPage, setCurrentPage] = useState(getInitialPageFromUrl)
@@ -69,7 +31,6 @@ export default function App() {
   const [currentUserEmail, setCurrentUserEmail] = useState(null)
   const [authModalMode, setAuthModalMode] = useState(null)
 
-
   const addToast = useCallback((message, type = 'info') => {
     const id = crypto.randomUUID()
 
@@ -84,113 +45,16 @@ export default function App() {
     setToasts((prev) => prev.filter((toast) => toast.id !== id))
   }, [])
 
-  const runSync = useCallback(async () => {
-    if (isSyncInProgressRef.current) {
-      return
-    }
-
-    isSyncInProgressRef.current = true
-    const syncStartRevision = recipesRevisionRef.current
-
-    try {
-      const localRecipes = recipeRepository.getRecipes()
-      const lastSyncTimestamp = recipeRepository.getLastSyncTimestamp()
-      const syncResult = await syncRecipes(localRecipes, lastSyncTimestamp)
-
-      if (syncResult.authStatus === 'signed_out') {
-        setCurrentUserEmail(null)
-
-        if (!hasShownSignedOutToastRef.current) {
-          addToast('Supabase sync: выполнен офлайн-режим, войдите для синхронизации', 'info')
-          hasShownSignedOutToastRef.current = true
-        }
-
-        return
-      }
-
-      hasShownSignedOutToastRef.current = false
-
-      if (syncStartRevision !== recipesRevisionRef.current) {
-        return
-      }
-
-      recipeRepository.saveLastSyncTimestamp(syncResult.lastSyncTimestamp)
-
-      setRecipes((currentRecipes) => {
-        if (areRecipesEqual(currentRecipes, syncResult.recipes)) {
-          return currentRecipes
-        }
-
-        recipeRepository.saveRecipes(syncResult.recipes)
-        return syncResult.recipes
-      })
-
-      if (syncResult.stats.pushedCount || syncResult.stats.pulledCount) {
-        addToast(
-          `Supabase: отправлено ${syncResult.stats.pushedCount}, получено ${syncResult.stats.pulledCount}`,
-          'success',
-        )
-      }
-    } catch (error) {
-      addToast(`Supabase sync: ${error.message ?? 'Неизвестная ошибка'}`, 'error')
-    } finally {
-      isSyncInProgressRef.current = false
-    }
-  }, [addToast])
-
-  useEffect(() => {
-    recipesRevisionRef.current += 1
-    recipeRepository.saveRecipes(recipes)
-
-    if (syncTimeoutRef.current) {
-      window.clearTimeout(syncTimeoutRef.current)
-    }
-
-    syncTimeoutRef.current = window.setTimeout(() => {
-      runSync()
-    }, 800)
-
-    return () => {
-      if (syncTimeoutRef.current) {
-        window.clearTimeout(syncTimeoutRef.current)
-      }
-    }
-  }, [recipes, runSync])
+  const { signIn, signOut, signUp } = useRecipeSync({
+    recipes,
+    setRecipes,
+    addToast,
+    setCurrentUserEmail,
+  })
 
   useEffect(() => {
     recipeRepository.saveIsLightweightView(isLightweightView)
   }, [isLightweightView])
-
-  useEffect(() => {
-    runSync()
-
-    const handleOnline = () => {
-      runSync()
-    }
-
-    window.addEventListener('online', handleOnline)
-
-    return () => {
-      window.removeEventListener('online', handleOnline)
-    }
-  }, [runSync])
-
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      const sessionUser = session?.user ?? null
-      setCurrentUserEmail(sessionUser?.email ?? null)
-
-      if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && sessionUser) {
-        runSync()
-      }
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [runSync])
 
   useEffect(() => {
     const syncPageFromUrl = () => {
@@ -204,31 +68,14 @@ export default function App() {
     }
   }, [])
 
-  const visibleRecipes = useMemo(() => {
-    const sorted = [...recipes].sort((a, b) => {
-      if (a.isQueued !== b.isQueued) return a.isQueued ? -1 : 1
-      const baseResult = recipeSorters[sortField](a, b)
-      return sortDirection === 'asc' ? baseResult : -baseResult
-    })
-
-    return sorted.filter((recipe) => {
-      if (recipe.deletedAt) return false
-      return showArchivedOnly ? recipe.isArchived : !recipe.isArchived
-    })
-  }, [recipes, showArchivedOnly, sortDirection, sortField])
-
-  const totalPages = Math.max(1, Math.ceil(visibleRecipes.length / RECIPES_PER_PAGE))
-  const normalizedPage = Math.min(currentPage, totalPages)
-  const paginatedRecipes = visibleRecipes.slice(0, normalizedPage * RECIPES_PER_PAGE)
-  const hasMoreRecipes = normalizedPage < totalPages
-  const shouldShowPagination = visibleRecipes.length > RECIPES_PER_PAGE
-
-  useEffect(() => {
-    if (normalizedPage !== currentPage) {
-      setCurrentPage(normalizedPage)
-      setPageInUrl(normalizedPage, { replace: true })
-    }
-  }, [currentPage, normalizedPage])
+  const { hasMoreRecipes, normalizedPage, paginatedRecipes, shouldShowPagination, totalPages } = useRecipePagination({
+    recipes,
+    sortField,
+    sortDirection,
+    showArchivedOnly,
+    currentPage,
+    setCurrentPage,
+  })
 
   useEffect(() => {
     if (!shouldScrollToRecipes || !recipeListRef.current) {
