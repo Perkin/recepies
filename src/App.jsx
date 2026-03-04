@@ -12,6 +12,40 @@ import { recipeSorters } from './utils/recipeSorters.js'
 import { getInitialPageFromUrl, setPageInUrl } from './utils/pagination'
 import { signIn, signOut, signUp, supabase, syncRecipes } from './utils/supabase'
 
+function areRecipesEqual(left, right) {
+  if (left === right) {
+    return true
+  }
+
+  if (left.length !== right.length) {
+    return false
+  }
+
+  return left.every((recipe, index) => {
+    const other = right[index]
+
+    if (!other) {
+      return false
+    }
+
+    return (
+      recipe.id === other.id &&
+      recipe.title === other.title &&
+      recipe.description === other.description &&
+      recipe.ingredients === other.ingredients &&
+      recipe.instructions === other.instructions &&
+      recipe.videoUrl === other.videoUrl &&
+      recipe.cookCount === other.cookCount &&
+      recipe.isArchived === other.isArchived &&
+      recipe.isQueued === other.isQueued &&
+      recipe.createdAt === other.createdAt &&
+      recipe.updatedAt === other.updatedAt &&
+      recipe.lastCookedAt === other.lastCookedAt &&
+      recipe.deletedAt === other.deletedAt
+    )
+  })
+}
+
 export default function App() {
   const recipeListRef = useRef(null)
   const syncTimeoutRef = useRef(null)
@@ -80,9 +114,16 @@ export default function App() {
         return
       }
 
-      recipeRepository.saveRecipes(syncResult.recipes)
       recipeRepository.saveLastSyncTimestamp(syncResult.lastSyncTimestamp)
-      setRecipes(syncResult.recipes)
+
+      setRecipes((currentRecipes) => {
+        if (areRecipesEqual(currentRecipes, syncResult.recipes)) {
+          return currentRecipes
+        }
+
+        recipeRepository.saveRecipes(syncResult.recipes)
+        return syncResult.recipes
+      })
 
       if (syncResult.stats.pushedCount || syncResult.stats.pulledCount) {
         addToast(
