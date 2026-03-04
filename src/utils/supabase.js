@@ -80,7 +80,7 @@ export async function deleteRecipe(id) {
 
 export async function fetchUpdates(lastSyncTimestamp) {
   const { data, error } = await supabase
-    .from('recipшes')
+    .from('recipies')
     .select('*')
     .gt('updated_at', lastSyncTimestamp)
     .order('updated_at', { ascending: true })
@@ -94,10 +94,10 @@ export async function pushPendingChanges(localRecipies, lastSyncTimestamp) {
 
   for (const recipe of pending) {
     if (recipe.createdAt > lastSyncTimestamp) {
-      await supabase.from('recipes').insert([recipe])
+      await supabase.from('recipies').insert([recipe])
     } else {
       await supabase
-        .from('recipes')
+        .from('recipies')
         .update(recipe)
         .eq('id', recipe.id)
     }
