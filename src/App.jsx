@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AppHeader } from './components/recipe/AppHeader'
 import { RecipeCard } from './components/recipe/RecipeCard'
 import { SortControls } from './components/recipe/SortControls'
@@ -103,6 +103,7 @@ function getInitialRecipes() {
 }
 
 export default function App() {
+  const recipeListRef = useRef(null)
   const [recipes, setRecipes] = useState(getInitialRecipes)
   const [currentPage, setCurrentPage] = useState(getInitialPageFromUrl)
   const [sortField, setSortField] = useState('createdAt')
@@ -114,6 +115,7 @@ export default function App() {
   const [editingId, setEditingId] = useState(null)
   const [formValues, setFormValues] = useState(emptyForm)
   const [isFormVisible, setIsFormVisible] = useState(false)
+  const [shouldScrollToRecipes, setShouldScrollToRecipes] = useState(false)
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes))
@@ -150,8 +152,9 @@ export default function App() {
 
   const totalPages = Math.max(1, Math.ceil(visibleRecipes.length / RECIPES_PER_PAGE))
   const normalizedPage = Math.min(currentPage, totalPages)
-  const paginatedRecipes = visibleRecipes.slice(0, normalizedPage * RECIPES_PER_PAGE)
-  const hasMoreRecipes = paginatedRecipes.length < visibleRecipes.length
+  const firstRecipeIndex = (normalizedPage - 1) * RECIPES_PER_PAGE
+  const paginatedRecipes = visibleRecipes.slice(firstRecipeIndex, firstRecipeIndex + RECIPES_PER_PAGE)
+  const hasMoreRecipes = normalizedPage < totalPages
   const shouldShowPagination = visibleRecipes.length > RECIPES_PER_PAGE
   const paginationItems = Array.from({ length: totalPages }, (_, index) => index + 1)
 
@@ -162,9 +165,39 @@ export default function App() {
     }
   }, [currentPage, normalizedPage])
 
+  useEffect(() => {
+    if (!shouldScrollToRecipes || !recipeListRef.current) {
+      return
+    }
+
+    const targetTop = window.scrollY + recipeListRef.current.getBoundingClientRect().top
+    const startTop = window.scrollY
+    const animationDurationMs = 300
+    const animationStart = performance.now()
+
+    const animateScroll = (timestamp) => {
+      const elapsed = timestamp - animationStart
+      const progress = Math.min(elapsed / animationDurationMs, 1)
+      const easedProgress = 1 - (1 - progress) ** 3
+      const nextTop = startTop + (targetTop - startTop) * easedProgress
+
+      window.scrollTo(0, nextTop)
+
+      if (progress < 1) {
+        window.requestAnimationFrame(animateScroll)
+        return
+      }
+
+      setShouldScrollToRecipes(false)
+    }
+
+    window.requestAnimationFrame(animateScroll)
+  }, [normalizedPage, shouldScrollToRecipes])
+
   const setPaginationPage = (nextPage) => {
     if (nextPage === normalizedPage) return
 
+    setShouldScrollToRecipes(true)
     setCurrentPage(nextPage)
     setPageInUrl(nextPage)
   }
@@ -324,7 +357,7 @@ export default function App() {
         onLightweightViewChange={setIsLightweightView}
       />
 
-      <main className="mt-4 grid gap-4">
+      <main ref={recipeListRef} className="mt-4 grid gap-4">
         {paginatedRecipes.map((recipe) => (
           <RecipeCard
             key={recipe.id}
@@ -391,14 +424,24 @@ export default function App() {
         <section className="mt-6 flex flex-col items-center gap-3">
           <nav className="flex flex-wrap items-center justify-center gap-2" aria-label="Пагинация рецептов">
             {paginationItems.map((pageNumber) => (
-              <button
-                key={pageNumber}
-                type="button"
-                className={pageNumber === normalizedPage ? 'btn-primary' : 'btn-secondary'}
-                onClick={() => setPaginationPage(pageNumber)}
-              >
-                {pageNumber}
-              </button>
+              pageNumber === normalizedPage ? (
+                <span
+                  key={pageNumber}
+                  className="btn-primary pointer-events-none opacity-70"
+                  aria-current="page"
+                >
+                  {pageNumber}
+                </span>
+              ) : (
+                <button
+                  key={pageNumber}
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setPaginationPage(pageNumber)}
+                >
+                  {pageNumber}
+                </button>
+              )
             ))}
           </nav>
 
