@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArchiveIcon, CalendarIcon, CheckIcon, DeleteIcon, EditIcon, FlameIcon, PotIcon } from '../icons'
+import { ArchiveIcon, CalendarIcon, CheckIcon, DeleteIcon, EditIcon, FlameIcon, PotIcon, VideoUnavailableIcon } from '../icons'
 import { formatDate } from '../../utils/date'
 
 export function RecipeCard({
@@ -56,13 +56,21 @@ export function RecipeCard({
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               <section className="placeholder-box">
                 <p className="placeholder-title">Видео рецепта</p>
-                <div className="mt-2 rounded-lg border border-dashed border-slate-600/90 bg-slate-900/70 p-2 text-xs text-slate-300">
+                <div className="mt-2 flex justify-center rounded-lg border border-dashed border-slate-600/90 bg-slate-900/70 p-2 text-xs text-slate-300">
                   {recipe.videoUrl ? (
-                    <a href={recipe.videoUrl} target="_blank" rel="noreferrer" className="text-amber-200 underline">
-                      Открыть видео
-                    </a>
+                    <video
+                      controls
+                      preload="metadata"
+                      className="h-[160px] w-[240px] max-w-full rounded-md bg-slate-950 sm:h-[180px] sm:w-[320px]"
+                    >
+                      <source src={recipe.videoUrl} />
+                      Ваш браузер не поддерживает видео.
+                    </video>
                   ) : (
-                    'Не добавлено'
+                    <div className="flex h-[160px] w-[240px] max-w-full flex-col items-center justify-center gap-2 rounded-md border border-slate-700 bg-slate-950/80 text-slate-400 sm:h-[180px] sm:w-[320px]">
+                      <VideoUnavailableIcon className="h-8 w-8" />
+                      <span>Видео не загружено</span>
+                    </div>
                   )}
                 </div>
               </section>
