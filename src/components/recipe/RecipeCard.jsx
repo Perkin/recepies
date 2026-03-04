@@ -5,6 +5,7 @@ import { parseRecipeVideo } from '../../utils/video'
 
 export function RecipeCard({
   recipe,
+  recipeId,
   isArchiveView,
   isLightweightView,
   onCooked,
@@ -30,6 +31,7 @@ export function RecipeCard({
 
   return (
     <article
+      data-recipe-id={recipeId}
       className={`rounded-xl border bg-gradient-to-br from-slate-900/95 to-slate-800/90 p-3 shadow-lg shadow-black/20 sm:p-4 ${borderClass}`}
       onClick={handleLightweightClick}
       onKeyDown={(event) => {
