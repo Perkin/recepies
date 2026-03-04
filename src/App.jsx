@@ -166,56 +166,61 @@ export default function App() {
             {editingId ? 'Редактирование рецепта' : 'Новый рецепт'}
           </h2>
           <form className="mt-3 grid gap-2" onSubmit={submitForm}>
-            <input
-              className="input-base"
-              placeholder="Название"
-              required
-              value={formValues.title}
-              onChange={(event) => setFormValues((prev) => ({ ...prev, title: event.target.value }))}
-            />
-            <textarea
-              className="input-base min-h-20"
-              placeholder="Краткое описание"
-              required
-              value={formValues.description}
-              onChange={(event) =>
-                setFormValues((prev) => ({ ...prev, description: event.target.value }))
-              }
-            />
-            <textarea
-              className="input-base min-h-24"
-              placeholder="Ингредиенты"
-              required
-              value={formValues.ingredients}
-              onChange={(event) =>
-                setFormValues((prev) => ({ ...prev, ingredients: event.target.value }))
-              }
-            />
-            <textarea
-              className="input-base min-h-24"
-              placeholder="Инструкции"
-              required
-              value={formValues.instructions}
-              onChange={(event) =>
-                setFormValues((prev) => ({ ...prev, instructions: event.target.value }))
-              }
-            />
-            <div>
+            <label className="text-sm text-slate-200">
+              Название <span className="text-rose-400">*</span>
               <input
-                className="input-base"
-                placeholder="Ссылка на видео (YouTube, VK Видео, RuTube или прямой .mp4, опционально)"
+                className="input-base mt-1"
+                placeholder="Название"
+                required
+                value={formValues.title}
+                onChange={(event) => setFormValues((prev) => ({ ...prev, title: event.target.value }))}
+              />
+            </label>
+            <label className="text-sm text-slate-200">
+              Краткое описание <span className="text-rose-400">*</span>
+              <textarea
+                className="input-base mt-1 min-h-20"
+                placeholder="Краткое описание"
+                required
+                value={formValues.description}
+                onChange={(event) =>
+                  setFormValues((prev) => ({ ...prev, description: event.target.value }))
+                }
+              />
+            </label>
+            <label className="text-sm text-slate-200">
+              Ингредиенты
+              <textarea
+                className="input-base mt-1 min-h-24"
+                placeholder="Ингредиенты"
+                value={formValues.ingredients}
+                onChange={(event) =>
+                  setFormValues((prev) => ({ ...prev, ingredients: event.target.value }))
+                }
+              />
+            </label>
+            <label className="text-sm text-slate-200">
+              Инструкции
+              <textarea
+                className="input-base mt-1 min-h-24"
+                placeholder="Инструкции"
+                value={formValues.instructions}
+                onChange={(event) =>
+                  setFormValues((prev) => ({ ...prev, instructions: event.target.value }))
+                }
+              />
+            </label>
+            <label className="text-sm text-slate-200">
+              Ссылка на видео
+              <input
+                className="input-base mt-1"
+                placeholder="Ссылка на видео"
                 value={formValues.videoUrl}
                 onChange={(event) =>
                   setFormValues((prev) => ({ ...prev, videoUrl: event.target.value }))
                 }
               />
-              <p className="mt-1 text-xs text-slate-400">
-                Для YouTube превью подтянется автоматически. Для VK Видео ссылка должна содержать формат вида
-                <span className="mx-1 font-mono text-slate-300">video-123_456</span>
-                или
-                <span className="mx-1 font-mono text-slate-300">video_ext.php?oid=...&id=...</span>. Для RuTube подойдут ссылки формата <span className="mx-1 font-mono text-slate-300">rutube.ru/video/&lt;id&gt;/</span>.
-              </p>
-            </div>
+            </label>
             <label className="inline-flex items-center gap-2 text-sm text-slate-200">
               <input
                 type="checkbox"
