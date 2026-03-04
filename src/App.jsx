@@ -1,92 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AppHeader } from './components/recipe/AppHeader'
-import { RecipeCard } from './components/recipe/RecipeCard'
+import { RecipeFormSection } from './components/recipe/RecipeFormSection'
+import { RecipeList } from './components/recipe/RecipeList'
+import { RecipePagination } from './components/recipe/RecipePagination'
 import { SortControls } from './components/recipe/SortControls'
+import {
+  emptyRecipeForm,
+  LIGHTWEIGHT_VIEW_STORAGE_KEY,
+  RECIPES_PER_PAGE,
+  STORAGE_KEY,
+} from './constants/recipes'
+import { defaultRecipes } from './data/defaultRecipes'
 import { recipeSorters } from './utils/recipeSorters.js'
-
-const STORAGE_KEY = 'recipes'
-const LIGHTWEIGHT_VIEW_STORAGE_KEY = 'recipes-lightweight-view'
-const RECIPES_PER_PAGE = 10
-
-function getInitialPageFromUrl() {
-  const params = new URLSearchParams(window.location.search)
-  const rawPage = Number.parseInt(params.get('page') ?? '1', 10)
-
-  return Number.isNaN(rawPage) || rawPage < 1 ? 1 : rawPage
-}
-
-function setPageInUrl(page, { replace = false } = {}) {
-  const params = new URLSearchParams(window.location.search)
-
-  if (page <= 1) {
-    params.delete('page')
-  } else {
-    params.set('page', String(page))
-  }
-
-  const query = params.toString()
-  const nextUrl = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`
-
-  if (replace) {
-    window.history.replaceState(null, '', nextUrl)
-    return
-  }
-
-  window.history.pushState(null, '', nextUrl)
-}
-
-const defaultRecipes = [
-  {
-    id: 'r1',
-    title: 'Томатная паста с базиликом',
-    description: 'Быстрый ужин: паста, томаты в собственном соку и немного пармезана.',
-    createdAt: '2026-02-15',
-    lastCookedAt: '2026-02-23',
-    cookCount: 3,
-    isQueued: true,
-    isArchived: false,
-    isDeleted: false,
-    ingredients:
-      '- 400 г спагетти\n- 1 банка томатов в собственном соку\n- 2 зубчика чеснока\n- Пучок базилика\n- 50 г пармезана',
-    instructions:
-      '1. Отварить пасту\n2. Обжарить чеснок\n3. Добавить томаты\n4. Подавать с базиликом',
-  },
-  {
-    id: 'r2',
-    title: 'Овсяные панкейки',
-    description: 'Завтрак из банана, яйца и овсяных хлопьев, подаётся с йогуртом.',
-    createdAt: '2026-01-20',
-    lastCookedAt: '2026-02-25',
-    cookCount: 5,
-    isQueued: false,
-    isArchived: false,
-    isDeleted: false,
-    ingredients: '- 1 спелый банан\n- 1 яйцо\n- 4 ст.л. овсяных хлопьев\n- Йогурт для подачи',
-    instructions: '1. Размять банан\n2. Смешать с яйцом и хлопьями\n3. Жарить на сковороде',
-  },
-  {
-    id: 'r3',
-    title: 'Курица терияки в духовке',
-    description: 'Маринад из соевого соуса, имбиря и мёда, запекание 35 минут.',
-    createdAt: '2025-12-30',
-    lastCookedAt: null,
-    cookCount: 0,
-    isQueued: false,
-    isArchived: false,
-    isDeleted: false,
-    ingredients: '- 4 куриных бедра\n- 4 ст.л. соевого соуса\n- 1 ч.л. натёртого имбиря\n- 1 ст.л. мёда',
-    instructions: '1. Сделать маринад\n2. Замариновать курицу\n3. Запекать 35 минут',
-  },
-]
-
-const emptyForm = {
-  title: '',
-  description: '',
-  ingredients: '',
-  instructions: '',
-  videoUrl: '',
-  isQueued: false,
-}
+import { getInitialPageFromUrl, setPageInUrl } from './utils/pagination'
 
 function getInitialRecipes() {
   const raw = localStorage.getItem(STORAGE_KEY)
@@ -113,7 +39,7 @@ export default function App() {
     return localStorage.getItem(LIGHTWEIGHT_VIEW_STORAGE_KEY) === 'true'
   })
   const [editingId, setEditingId] = useState(null)
-  const [formValues, setFormValues] = useState(emptyForm)
+  const [formValues, setFormValues] = useState(emptyRecipeForm)
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [shouldScrollToRecipes, setShouldScrollToRecipes] = useState(false)
   const [returnScrollRecipeId, setReturnScrollRecipeId] = useState(null)
@@ -156,7 +82,6 @@ export default function App() {
   const paginatedRecipes = visibleRecipes.slice(0, normalizedPage * RECIPES_PER_PAGE)
   const hasMoreRecipes = normalizedPage < totalPages
   const shouldShowPagination = visibleRecipes.length > RECIPES_PER_PAGE
-  const paginationItems = Array.from({ length: totalPages }, (_, index) => index + 1)
 
   useEffect(() => {
     if (normalizedPage !== currentPage) {
@@ -208,6 +133,23 @@ export default function App() {
     setReturnScrollRecipeId(null)
   }, [returnScrollRecipeId, paginatedRecipes])
 
+  const openCreateForm = () => {
+    setEditingId(null)
+    setFormValues(emptyRecipeForm)
+    setIsFormVisible(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const closeForm = ({ shouldReturnToCard = false } = {}) => {
+    if (shouldReturnToCard && editingId) {
+      setReturnScrollRecipeId(editingId)
+    }
+
+    setEditingId(null)
+    setFormValues(emptyRecipeForm)
+    setIsFormVisible(false)
+  }
+
   const setPaginationPage = (nextPage) => {
     if (nextPage === normalizedPage) return
 
@@ -234,23 +176,6 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const openCreateForm = () => {
-    setEditingId(null)
-    setFormValues(emptyForm)
-    setIsFormVisible(true)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  const resetForm = ({ shouldReturnToCard = false } = {}) => {
-    if (shouldReturnToCard && editingId) {
-      setReturnScrollRecipeId(editingId)
-    }
-
-    setEditingId(null)
-    setFormValues(emptyForm)
-    setIsFormVisible(false)
-  }
-
   const submitForm = (event) => {
     event.preventDefault()
 
@@ -267,7 +192,7 @@ export default function App() {
             : recipe,
         ),
       )
-      resetForm({ shouldReturnToCard: true })
+      closeForm({ shouldReturnToCard: true })
       return
     }
 
@@ -284,7 +209,53 @@ export default function App() {
       ...prev,
     ])
 
-    resetForm()
+    closeForm()
+  }
+
+  const handleCooked = (recipe) => {
+    const today = new Date().toISOString().slice(0, 10)
+    setRecipes((prev) =>
+      prev.map((item) =>
+        item.id === recipe.id
+          ? {
+              ...item,
+              cookCount: item.cookCount + 1,
+              lastCookedAt: today,
+              isQueued: false,
+            }
+          : item,
+      ),
+    )
+  }
+
+  const handleArchive = (recipe) => {
+    setRecipes((prev) => prev.map((item) => (item.id === recipe.id ? { ...item, isArchived: true } : item)))
+  }
+
+  const handleRestore = (recipe) => {
+    setRecipes((prev) => prev.map((item) => (item.id === recipe.id ? { ...item, isArchived: false } : item)))
+  }
+
+  const handleEdit = (recipe) => {
+    setEditingId(recipe.id)
+    setIsFormVisible(true)
+    setFormValues({
+      title: recipe.title,
+      description: recipe.description,
+      ingredients: recipe.ingredients,
+      instructions: recipe.instructions,
+      videoUrl: recipe.videoUrl ?? '',
+      isQueued: recipe.isQueued,
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleDelete = (recipe) => {
+    setRecipes((prev) => prev.map((item) => (item.id === recipe.id ? { ...item, isDeleted: true } : item)))
+
+    if (editingId === recipe.id) {
+      closeForm()
+    }
   }
 
   return (
@@ -292,92 +263,13 @@ export default function App() {
       <AppHeader onAddRecipe={openCreateForm} isFormVisible={isFormVisible} />
 
       {isFormVisible ? (
-        <section className="mt-5 rounded-2xl border border-slate-700/60 bg-slate-900/40 p-3 sm:p-4">
-          <h2 className="text-base font-semibold text-slate-100">
-            {editingId ? 'Редактирование рецепта' : 'Новый рецепт'}
-          </h2>
-          <form className="mt-3 grid gap-2" onSubmit={submitForm}>
-            <label className="text-sm text-slate-200">
-              Название <span className="text-rose-400">*</span>
-              <input
-                className="input-base mt-1"
-                placeholder="Название"
-                required
-                value={formValues.title}
-                onChange={(event) => setFormValues((prev) => ({ ...prev, title: event.target.value }))}
-              />
-            </label>
-            <label className="text-sm text-slate-200">
-              Краткое описание <span className="text-rose-400">*</span>
-              <textarea
-                className="input-base mt-1 min-h-20"
-                placeholder="Краткое описание"
-                required
-                value={formValues.description}
-                onChange={(event) =>
-                  setFormValues((prev) => ({ ...prev, description: event.target.value }))
-                }
-              />
-            </label>
-            <label className="text-sm text-slate-200">
-              Ингредиенты
-              <textarea
-                className="input-base mt-1 min-h-24"
-                placeholder="Ингредиенты"
-                value={formValues.ingredients}
-                onChange={(event) =>
-                  setFormValues((prev) => ({ ...prev, ingredients: event.target.value }))
-                }
-              />
-            </label>
-            <label className="text-sm text-slate-200">
-              Инструкции
-              <textarea
-                className="input-base mt-1 min-h-24"
-                placeholder="Инструкции"
-                value={formValues.instructions}
-                onChange={(event) =>
-                  setFormValues((prev) => ({ ...prev, instructions: event.target.value }))
-                }
-              />
-            </label>
-            <label className="text-sm text-slate-200">
-              Ссылка на видео
-              <input
-                className="input-base mt-1"
-                placeholder="Ссылка на видео"
-                value={formValues.videoUrl}
-                onChange={(event) =>
-                  setFormValues((prev) => ({ ...prev, videoUrl: event.target.value }))
-                }
-              />
-            </label>
-            <label className="inline-flex items-center gap-2 text-sm text-slate-200">
-              <input
-                type="checkbox"
-                className="checkbox-base"
-                checked={formValues.isQueued}
-                onChange={(event) =>
-                  setFormValues((prev) => ({ ...prev, isQueued: event.target.checked }))
-                }
-              />
-              Добавить в очередь
-            </label>
-
-            <div className="flex flex-wrap gap-2">
-              <button type="submit" className="btn-primary btn-emphasis">
-                {editingId ? 'Сохранить' : 'Добавить'}
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => resetForm({ shouldReturnToCard: Boolean(editingId) })}
-              >
-                {editingId ? 'Отменить' : 'Скрыть форму'}
-              </button>
-            </div>
-          </form>
-        </section>
+        <RecipeFormSection
+          isEditing={Boolean(editingId)}
+          values={formValues}
+          onChange={setFormValues}
+          onSubmit={submitForm}
+          onCancel={() => closeForm({ shouldReturnToCard: Boolean(editingId) })}
+        />
       ) : null}
 
       <SortControls
@@ -397,118 +289,27 @@ export default function App() {
         onLightweightViewChange={setIsLightweightView}
       />
 
-      <main ref={recipeListRef} className="mt-4 grid gap-4">
-        {paginatedRecipes.map((recipe) => (
-          <RecipeCard
-            key={recipe.id}
-            recipe={recipe}
-            recipeId={recipe.id}
-            isArchiveView={showArchivedOnly}
-            isLightweightView={isLightweightView}
-            onCooked={() => {
-              const today = new Date().toISOString().slice(0, 10)
-              setRecipes((prev) =>
-                prev.map((item) =>
-                  item.id === recipe.id
-                    ? {
-                        ...item,
-                        cookCount: item.cookCount + 1,
-                        lastCookedAt: today,
-                        isQueued: false,
-                      }
-                    : item,
-                ),
-              )
-            }}
-            onArchive={() => {
-              setRecipes((prev) =>
-                prev.map((item) =>
-                  item.id === recipe.id ? { ...item, isArchived: true } : item,
-                ),
-              )
-            }}
-            onRestore={() => {
-              setRecipes((prev) =>
-                prev.map((item) =>
-                  item.id === recipe.id ? { ...item, isArchived: false } : item,
-                ),
-              )
-            }}
-            onEdit={() => {
-              setEditingId(recipe.id)
-              setIsFormVisible(true)
-              setFormValues({
-                title: recipe.title,
-                description: recipe.description,
-                ingredients: recipe.ingredients,
-                instructions: recipe.instructions,
-                videoUrl: recipe.videoUrl ?? '',
-                isQueued: recipe.isQueued,
-              })
-              window.scrollTo({ top: 0, behavior: 'smooth' })
-            }}
-            onDelete={() => {
-              setRecipes((prev) =>
-                prev.map((item) =>
-                  item.id === recipe.id ? { ...item, isDeleted: true } : item,
-                ),
-              )
-              if (editingId === recipe.id) {
-                resetForm()
-              }
-            }}
-          />
-        ))}
-      </main>
+      <RecipeList
+        listRef={recipeListRef}
+        recipes={paginatedRecipes}
+        isArchiveView={showArchivedOnly}
+        isLightweightView={isLightweightView}
+        onCooked={handleCooked}
+        onArchive={handleArchive}
+        onRestore={handleRestore}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
 
       {shouldShowPagination ? (
-        <section className="mt-6 flex flex-col gap-3">
-          <nav
-            className="flex flex-wrap items-center justify-center gap-2 self-center"
-            aria-label="Пагинация рецептов"
-          >
-            {paginationItems.map((pageNumber) => (
-              pageNumber === normalizedPage ? (
-                <span
-                  key={pageNumber}
-                  className="btn-primary pointer-events-none opacity-70"
-                  aria-current="page"
-                >
-                  {pageNumber}
-                </span>
-              ) : (
-                <button
-                  key={pageNumber}
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setPaginationPage(pageNumber)}
-                >
-                  {pageNumber}
-                </button>
-              )
-            ))}
-          </nav>
-
-          <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center">
-            {hasMoreRecipes ? (
-              <button
-                type="button"
-                className="btn-secondary col-start-2 justify-self-center"
-                onClick={loadMoreRecipes}
-              >
-                Показать ещё
-              </button>
-            ) : null}
-
-            <button
-              type="button"
-              className="btn-secondary col-start-3 justify-self-end"
-              onClick={scrollToTopAndFirstPage}
-            >
-              В начало
-            </button>
-          </div>
-        </section>
+        <RecipePagination
+          currentPage={normalizedPage}
+          totalPages={totalPages}
+          hasMoreRecipes={hasMoreRecipes}
+          onPageChange={setPaginationPage}
+          onLoadMore={loadMoreRecipes}
+          onScrollToTop={scrollToTopAndFirstPage}
+        />
       ) : null}
     </div>
   )
