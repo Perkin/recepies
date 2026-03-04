@@ -12,55 +12,7 @@
 
 # План реализации приложения рецептов
 
-## 1) backend-sync
-- при локальном хранении использовать слой репозитория данных (`RecipeRepository`). Принцип - offline first.
-- синхронизация осуществляется через supabase с авторизацией (нужно отдельно реализовать форму регистрации и авторизации)
-- План такой:
-- При запуске приложения
-    1. Берём lastSyncTimestamp из localStorage
-    2. Запрашиваем у сервера:
-    все записи где updated_at > lastSyncTimestamp - метод fetchUpdates()
-    3. Обновляем локальную базу:
-    - если deleted_at != null → удаляем локально, сохраняя признак deletedAt (признак isDeleted удаляем, вместо него делаем поле deletedAt)
-    - иначе → обновляем/добавляем
-    4. Сохраняем новый lastSyncTimestamp
-- При добавлении/редактировании/архивации/удалении рецепта
-    1. Создаём/редактируем/архивируем/удаляем рецепт локально
-    2. Отправляем на сервер - метод pushPendingChanges() + надо как-то продумать, когда вызывать insert, а когда update, наверно можно смотреть просто в дату createdAt, если она > lastSyncTimestamp, то это insert
-        Если успешно, обновляем lastSyncTimestamp в localStorage, обновляем updatedAt в локальной базе (если поля еще нет - создать). 
-       Если не успешно, то надо будет отправить данные позже, которые были изменены после lastSyncTimestamp. 
-       Наверно лучше это делать при старте приложения, там где мы синхронизируем данные от сервера, там же будем синхронизировать и на сервер. См метод sync(). Надо будет его дописать, это просто прототип.
-- Что если:
-    пользователь изменил рецепт на телефоне, потом на компьютере, потом оба синхронизируются?
-    Простейшее решение: Last write wins (по updated_at)
-    То есть: сервер всегда принимает последнее изменение, клиент при pull просто перезаписывает локальную версию.
-- текущая структура БД supabase:
-    create table public.recipies (
-    id uuid primary key,
-
-    user_id uuid not null references auth.users(id) on delete cascade,
-
-    title text not null,
-    description text,
-    ingredients text,
-    instructions text,
-
-    video_url text,
-
-    cook_count integer not null default 0,
-
-    is_archived boolean not null default false,
-    is_queued boolean not null default false,
-
-    created_at timestamptz not null default now(),
-    updated_at timestamptz not null default now(),
-    last_cooked_at timestamptz,
-
-    deleted_at timestamptz
-    );
-- было бы неплохо сделать какую-то обратную связь с резульататми вызова supabase api, и выводить toasts со статусами обновлений. Удалось обновить, не удалось. Были ли новые данные, не было, и т.д.
-
-## 2) Импорт из Telegram через бота + backend webhook
+## 1) Импорт из Telegram через бота + backend webhook
 
 - Добавляем бота в приватный канал (лучше с правами администратора).
 - Настраиваем webhook **на backend** (`POST /telegram/webhook`), а не на клиентское приложение.
@@ -72,7 +24,7 @@
 - Сохраняем `text`, `telegram_file_id`, `imported_at`, `source_chat_id`, `source_message_id`.
 - Видео грузим/кешируем через backend, а в UI отдаём стабильный URL.
 
-## 3) PWA для установки на Android
+## 2) PWA для установки на Android
 - `manifest.webmanifest`
 - Service Worker (offline shell + runtime cache)
 - Иконки 192/512 (в т.ч. maskable)
