@@ -492,11 +492,9 @@ export default function App() {
             </button>
           ) : null}
 
-          {normalizedPage > 1 ? (
-            <button type="button" className="btn-secondary" onClick={scrollToTopAndFirstPage}>
-              В начало
-            </button>
-          ) : null}
+          <button type="button" className="btn-secondary" onClick={scrollToTopAndFirstPage}>
+            В начало
+          </button>
         </section>
       ) : null}
     </div>
