@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-labelledby="title desc">
+  <title id="title">Recipe Flow icon 192</title>
+  <desc id="desc">Темная круглая иконка с буквами RF</desc>
+  <rect width="192" height="192" rx="42" fill="#0f172a"/>
+  <circle cx="96" cy="96" r="64" fill="#1e293b"/>
+  <text x="96" y="112" text-anchor="middle" font-size="56" font-family="Arial, sans-serif" font-weight="700" fill="#f8fafc">RF</text>
+</svg>

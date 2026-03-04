@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Recipe Flow icon 512</title>
+  <desc id="desc">Иконка Recipe Flow для PWA</desc>
+  <rect width="512" height="512" rx="108" fill="#0f172a"/>
+  <rect x="72" y="72" width="368" height="368" rx="84" fill="#1e293b"/>
+  <text x="256" y="297" text-anchor="middle" font-size="148" font-family="Arial, sans-serif" font-weight="700" fill="#f8fafc">RF</text>
+</svg>
