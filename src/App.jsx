@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ToastViewport } from './components/common/ToastViewport'
 import { AppHeader } from './components/recipe/AppHeader'
+import { AuthPanel } from './components/recipe/AuthPanel'
 import { RecipeFormSection } from './components/recipe/RecipeFormSection'
 import { RecipeList } from './components/recipe/RecipeList'
 import { RecipePagination } from './components/recipe/RecipePagination'
@@ -8,12 +10,13 @@ import { emptyRecipeForm, RECIPES_PER_PAGE } from './constants/recipes'
 import { recipeRepository } from './repositories/recipeRepository'
 import { recipeSorters } from './utils/recipeSorters.js'
 import { getInitialPageFromUrl, setPageInUrl } from './utils/pagination'
-import { syncRecipes } from './utils/supabase'
+import { getCurrentUser, signIn, signOut, signUp, syncRecipes } from './utils/supabase'
 
 export default function App() {
   const recipeListRef = useRef(null)
   const syncTimeoutRef = useRef(null)
   const isSyncInProgressRef = useRef(false)
+  const hasShownSignedOutToastRef = useRef(false)
 
   const [recipes, setRecipes] = useState(() => recipeRepository.getRecipes())
   const [currentPage, setCurrentPage] = useState(getInitialPageFromUrl)
@@ -26,6 +29,24 @@ export default function App() {
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [shouldScrollToRecipes, setShouldScrollToRecipes] = useState(false)
   const [returnScrollRecipeId, setReturnScrollRecipeId] = useState(null)
+  const [toasts, setToasts] = useState([])
+  const [isAuthBusy, setIsAuthBusy] = useState(false)
+  const [currentUserEmail, setCurrentUserEmail] = useState(null)
+
+
+  const addToast = useCallback((message, type = 'info') => {
+    const id = crypto.randomUUID()
+
+    setToasts((prev) => [...prev, { id, message, type }])
+
+    window.setTimeout(() => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id))
+    }, 4500)
+  }, [])
+
+  const dismissToast = useCallback((id) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id))
+  }, [])
 
   const runSync = useCallback(async () => {
     if (isSyncInProgressRef.current) {
@@ -39,15 +60,35 @@ export default function App() {
       const lastSyncTimestamp = recipeRepository.getLastSyncTimestamp()
       const syncResult = await syncRecipes(localRecipes, lastSyncTimestamp)
 
+      if (syncResult.authStatus === 'signed_out') {
+        setCurrentUserEmail(null)
+
+        if (!hasShownSignedOutToastRef.current) {
+          addToast('Supabase sync: выполнен офлайн-режим, войдите для синхронизации', 'info')
+          hasShownSignedOutToastRef.current = true
+        }
+
+        return
+      }
+
+      hasShownSignedOutToastRef.current = false
+
       recipeRepository.saveRecipes(syncResult.recipes)
       recipeRepository.saveLastSyncTimestamp(syncResult.lastSyncTimestamp)
       setRecipes(syncResult.recipes)
+
+      if (syncResult.stats.pushedCount || syncResult.stats.pulledCount) {
+        addToast(
+          `Supabase: отправлено ${syncResult.stats.pushedCount}, получено ${syncResult.stats.pulledCount}`,
+          'success',
+        )
+      }
     } catch (error) {
-      console.error('Sync failed', error)
+      addToast(`Supabase sync: ${error.message ?? 'Неизвестная ошибка'}`, 'error')
     } finally {
       isSyncInProgressRef.current = false
     }
-  }, [])
+  }, [addToast])
 
   useEffect(() => {
     recipeRepository.saveRecipes(recipes)
@@ -84,6 +125,19 @@ export default function App() {
       window.removeEventListener('online', handleOnline)
     }
   }, [runSync])
+
+  useEffect(() => {
+    const initUser = async () => {
+      try {
+        const user = await getCurrentUser()
+        setCurrentUserEmail(user?.email ?? null)
+      } catch (error) {
+        addToast(`Supabase auth: ${error.message ?? 'Неизвестная ошибка'}`, 'error')
+      }
+    }
+
+    initUser()
+  }, [addToast])
 
   useEffect(() => {
     const syncPageFromUrl = () => {
@@ -165,6 +219,49 @@ export default function App() {
 
     setReturnScrollRecipeId(null)
   }, [returnScrollRecipeId, paginatedRecipes])
+
+  const handleSignIn = async (email, password) => {
+    setIsAuthBusy(true)
+
+    try {
+      const data = await signIn(email, password)
+      const sessionUser = data.user ?? data.session?.user ?? null
+      setCurrentUserEmail(sessionUser?.email ?? email)
+      addToast('Supabase auth: вход выполнен', 'success')
+      await runSync()
+    } catch (error) {
+      addToast(`Supabase auth: ${error.message ?? 'Не удалось войти'}`, 'error')
+    } finally {
+      setIsAuthBusy(false)
+    }
+  }
+
+  const handleSignUp = async (email, password) => {
+    setIsAuthBusy(true)
+
+    try {
+      await signUp(email, password)
+      addToast('Supabase auth: регистрация выполнена. Подтвердите email, если включено подтверждение.', 'success')
+    } catch (error) {
+      addToast(`Supabase auth: ${error.message ?? 'Не удалось зарегистрироваться'}`, 'error')
+    } finally {
+      setIsAuthBusy(false)
+    }
+  }
+
+  const handleSignOut = async () => {
+    setIsAuthBusy(true)
+
+    try {
+      await signOut()
+      setCurrentUserEmail(null)
+      addToast('Supabase auth: выход выполнен', 'success')
+    } catch (error) {
+      addToast(`Supabase auth: ${error.message ?? 'Не удалось выйти'}`, 'error')
+    } finally {
+      setIsAuthBusy(false)
+    }
+  }
 
   const openCreateForm = () => {
     setEditingId(null)
@@ -311,7 +408,16 @@ export default function App() {
 
   return (
     <div className="mx-auto max-w-5xl px-3 pb-14 pt-5 text-slate-100 sm:px-4 sm:pt-9">
+      <ToastViewport toasts={toasts} onDismiss={dismissToast} />
+
       <AppHeader onAddRecipe={openCreateForm} isFormVisible={isFormVisible} />
+      <AuthPanel
+        userEmail={currentUserEmail}
+        isBusy={isAuthBusy}
+        onSignIn={handleSignIn}
+        onSignUp={handleSignUp}
+        onSignOut={handleSignOut}
+      />
 
       {isFormVisible ? (
         <RecipeFormSection

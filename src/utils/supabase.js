@@ -34,8 +34,21 @@ export async function getCurrentUser() {
     error,
   } = await supabase.auth.getUser()
 
-  if (error) throw error
+  if (error) {
+    if (error.name === 'AuthSessionMissingError') {
+      return null
+    }
+
+    throw error
+  }
+
   return user
+}
+
+export async function signOut() {
+  const { error } = await supabase.auth.signOut()
+
+  if (error) throw error
 }
 
 function toDbRecipe(recipe, userId) {
@@ -105,10 +118,16 @@ function mergeRecipes(localRecipes, remoteRecipes) {
 
 export async function fetchUpdates(lastSyncTimestamp) {
   const since = normalizeTimestamp(lastSyncTimestamp)
+  const user = await getCurrentUser()
+
+  if (!user) {
+    return []
+  }
 
   const { data, error } = await supabase
     .from(RECIPES_TABLE)
     .select('*')
+    .eq('user_id', user.id)
     .gt('updated_at', since)
     .order('updated_at', { ascending: true })
 
@@ -158,7 +177,21 @@ export async function syncRecipes(localRecipes, lastSyncTimestamp) {
     updatedAt: recipe.updatedAt ?? recipe.createdAt ?? new Date().toISOString(),
   }))
 
+  const currentUser = await getCurrentUser()
   const initialTimestamp = normalizeTimestamp(lastSyncTimestamp)
+
+  if (!currentUser) {
+    return {
+      recipes: normalizedLocalRecipes,
+      lastSyncTimestamp: initialTimestamp,
+      stats: {
+        pushedCount: 0,
+        pulledCount: 0,
+      },
+      authStatus: 'signed_out',
+    }
+  }
+
   const { pushedCount, pushedRecipes } = await pushPendingChanges(normalizedLocalRecipes, initialTimestamp)
   const updates = await fetchUpdates(initialTimestamp)
 
@@ -174,5 +207,6 @@ export async function syncRecipes(localRecipes, lastSyncTimestamp) {
       pushedCount,
       pulledCount: updates.length,
     },
+    authStatus: 'signed_in',
   }
 }
