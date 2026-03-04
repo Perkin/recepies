@@ -1,7 +1,7 @@
 {
   "name": "Мои рецепты",
   "short_name": "Мои рецепты",
-  "description": "Мои рецепты с синхронизацией и быстрым доступом с Android",
+  "description": "Мои рецепты",
   "lang": "ru",
   "start_url": "/",
   "scope": "/",
