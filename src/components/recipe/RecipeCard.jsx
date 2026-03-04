@@ -196,7 +196,7 @@ export function RecipeCard({
             </button>
             <button
               type="button"
-              className="btn-secondary btn-compact justify-center"
+              className="btn-secondary btn-compact btn-danger justify-center"
               onClick={(event) => {
                 event.stopPropagation()
                 onDelete()
