@@ -4,40 +4,19 @@ import { RecipeFormSection } from './components/recipe/RecipeFormSection'
 import { RecipeList } from './components/recipe/RecipeList'
 import { RecipePagination } from './components/recipe/RecipePagination'
 import { SortControls } from './components/recipe/SortControls'
-import {
-  emptyRecipeForm,
-  LIGHTWEIGHT_VIEW_STORAGE_KEY,
-  RECIPES_PER_PAGE,
-  STORAGE_KEY,
-} from './constants/recipes'
-import { defaultRecipes } from './data/defaultRecipes'
+import { emptyRecipeForm, RECIPES_PER_PAGE } from './constants/recipes'
+import { recipeRepository } from './repositories/recipeRepository'
 import { recipeSorters } from './utils/recipeSorters.js'
 import { getInitialPageFromUrl, setPageInUrl } from './utils/pagination'
 
-function getInitialRecipes() {
-  const raw = localStorage.getItem(STORAGE_KEY)
-
-  if (!raw) {
-    return defaultRecipes
-  }
-
-  try {
-    return JSON.parse(raw)
-  } catch {
-    return defaultRecipes
-  }
-}
-
 export default function App() {
   const recipeListRef = useRef(null)
-  const [recipes, setRecipes] = useState(getInitialRecipes)
+  const [recipes, setRecipes] = useState(() => recipeRepository.getRecipes())
   const [currentPage, setCurrentPage] = useState(getInitialPageFromUrl)
   const [sortField, setSortField] = useState('createdAt')
   const [sortDirection, setSortDirection] = useState('desc')
   const [showArchivedOnly, setShowArchivedOnly] = useState(false)
-  const [isLightweightView, setIsLightweightView] = useState(() => {
-    return localStorage.getItem(LIGHTWEIGHT_VIEW_STORAGE_KEY) === 'true'
-  })
+  const [isLightweightView, setIsLightweightView] = useState(() => recipeRepository.getIsLightweightView())
   const [editingId, setEditingId] = useState(null)
   const [formValues, setFormValues] = useState(emptyRecipeForm)
   const [isFormVisible, setIsFormVisible] = useState(false)
@@ -45,11 +24,11 @@ export default function App() {
   const [returnScrollRecipeId, setReturnScrollRecipeId] = useState(null)
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes))
+    recipeRepository.saveRecipes(recipes)
   }, [recipes])
 
   useEffect(() => {
-    localStorage.setItem(LIGHTWEIGHT_VIEW_STORAGE_KEY, String(isLightweightView))
+    recipeRepository.saveIsLightweightView(isLightweightView)
   }, [isLightweightView])
 
   useEffect(() => {
@@ -251,6 +230,12 @@ export default function App() {
   }
 
   const handleDelete = (recipe) => {
+    const isConfirmed = window.confirm(`Удалить рецепт «${recipe.title}»?`)
+
+    if (!isConfirmed) {
+      return
+    }
+
     setRecipes((prev) => prev.map((item) => (item.id === recipe.id ? { ...item, isDeleted: true } : item)))
 
     if (editingId === recipe.id) {
