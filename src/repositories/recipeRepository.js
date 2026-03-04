@@ -1,5 +1,4 @@
-import { LIGHTWEIGHT_VIEW_STORAGE_KEY, STORAGE_KEY } from '../constants/recipes'
-import { defaultRecipes } from '../data/defaultRecipes'
+import { LAST_SYNC_TIMESTAMP_STORAGE_KEY, LIGHTWEIGHT_VIEW_STORAGE_KEY, STORAGE_KEY } from '../constants/recipes'
 
 function readJson(key, fallbackValue) {
   const raw = localStorage.getItem(key)
@@ -15,13 +14,30 @@ function readJson(key, fallbackValue) {
   }
 }
 
+function normalizeRecipe(recipe) {
+  return {
+    ...recipe,
+    deletedAt: recipe.deletedAt ?? null,
+    updatedAt: recipe.updatedAt ?? recipe.createdAt ?? new Date().toISOString(),
+  }
+}
+
 export const recipeRepository = {
   getRecipes() {
-    return readJson(STORAGE_KEY, defaultRecipes)
+    const recipes = readJson(STORAGE_KEY, [])
+    return recipes.map(normalizeRecipe)
   },
 
   saveRecipes(recipes) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes.map(normalizeRecipe)))
+  },
+
+  getLastSyncTimestamp() {
+    return localStorage.getItem(LAST_SYNC_TIMESTAMP_STORAGE_KEY)
+  },
+
+  saveLastSyncTimestamp(timestamp) {
+    localStorage.setItem(LAST_SYNC_TIMESTAMP_STORAGE_KEY, timestamp)
   },
 
   getIsLightweightView() {

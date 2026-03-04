@@ -2,13 +2,16 @@ import { createClient } from '@supabase/supabase-js'
 
 export const supabase = createClient(
   'https://xeeyjdjghehiiliwdqbs.supabase.co',
-  'sb_publishable_ppTsBeIOu_kqag4_W6wM3A_2G7-suh5'
+  'sb_publishable_ppTsBeIOu_kqag4_W6wM3A_2G7-suh5',
 )
+
+const RECIPES_TABLE = 'recipies'
+const INITIAL_SYNC_TIMESTAMP = '1970-01-01T00:00:00.000Z'
 
 export async function signUp(email, password) {
   const { data, error } = await supabase.auth.signUp({
     email,
-    password
+    password,
   })
 
   if (error) throw error
@@ -18,7 +21,7 @@ export async function signUp(email, password) {
 export async function signIn(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
-    password
+    password,
   })
 
   if (error) throw error
@@ -26,90 +29,150 @@ export async function signIn(email, password) {
 }
 
 export async function getCurrentUser() {
-  const { data } = await supabase.auth.getUser()
-  return data.user
-}
-
-export async function fetchRecipies() {
-  const { data, error } = await supabase
-    .from('recipies')
-    .select('*')
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false })
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
 
   if (error) throw error
-  return data
+  return user
 }
 
-export async function addRecipe(recipe) {
-  const { data: userData } = await supabase.auth.getUser()
-
-  const { data, error } = await supabase
-    .from('recipies')
-    .insert([{
-      ...recipe,
-      user_id: userData.user.id
-    }])
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
-}
-
-export async function updateRecipe(id, updates) {
-  const { data, error } = await supabase
-    .from('recipies')
-    .update(updates)
-    .eq('id', id)
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
-}
-
-export async function deleteRecipe(id) {
-  const { error } = await supabase
-    .from('recipies')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-
-  if (error) throw error
-}
-
-export async function fetchUpdates(lastSyncTimestamp) {
-  const { data, error } = await supabase
-    .from('recipшes')
-    .select('*')
-    .gt('updated_at', lastSyncTimestamp)
-    .order('updated_at', { ascending: true })
-
-  if (error) throw error
-  return data
-}
-
-export async function pushPendingChanges(localRecipies, lastSyncTimestamp) {
-  const pending = localRecipies.filter(r => r.updatedAt > lastSyncTimestamp)
-
-  for (const recipe of pending) {
-    if (recipe.createdAt > lastSyncTimestamp) {
-      await supabase.from('recipes').insert([recipe])
-    } else {
-      await supabase
-        .from('recipes')
-        .update(recipe)
-        .eq('id', recipe.id)
-    }
+function toDbRecipe(recipe, userId) {
+  return {
+    id: recipe.id,
+    user_id: userId,
+    title: recipe.title,
+    description: recipe.description,
+    ingredients: recipe.ingredients,
+    instructions: recipe.instructions,
+    video_url: recipe.videoUrl ?? null,
+    cook_count: recipe.cookCount,
+    is_archived: recipe.isArchived,
+    is_queued: recipe.isQueued,
+    created_at: recipe.createdAt,
+    updated_at: recipe.updatedAt,
+    last_cooked_at: recipe.lastCookedAt,
+    deleted_at: recipe.deletedAt,
   }
 }
 
-export async function sync() {
-  await pushPendingChanges(localRecipies, lastSyncTimestamp)
+function fromDbRecipe(recipe) {
+  return {
+    id: recipe.id,
+    title: recipe.title,
+    description: recipe.description ?? '',
+    ingredients: recipe.ingredients ?? '',
+    instructions: recipe.instructions ?? '',
+    videoUrl: recipe.video_url ?? '',
+    cookCount: recipe.cook_count ?? 0,
+    isArchived: Boolean(recipe.is_archived),
+    isQueued: Boolean(recipe.is_queued),
+    createdAt: recipe.created_at,
+    updatedAt: recipe.updated_at,
+    lastCookedAt: recipe.last_cooked_at,
+    deletedAt: recipe.deleted_at,
+  }
+}
 
-  const updates = await fetchUpdates(lastSyncTimestamp)
+function normalizeTimestamp(timestamp) {
+  return timestamp ?? INITIAL_SYNC_TIMESTAMP
+}
 
-  mergeIntoLocalDB(updates)
+function getNewestTimestamp(recipes, fallbackTimestamp) {
+  return recipes.reduce((maxTimestamp, recipe) => {
+    if (!recipe.updatedAt) {
+      return maxTimestamp
+    }
 
-  saveNewSyncTimestamp()
+    return recipe.updatedAt > maxTimestamp ? recipe.updatedAt : maxTimestamp
+  }, fallbackTimestamp)
+}
+
+function mergeRecipes(localRecipes, remoteRecipes) {
+  const byId = new Map(localRecipes.map((recipe) => [recipe.id, recipe]))
+
+  for (const remoteRecipe of remoteRecipes) {
+    const localRecipe = byId.get(remoteRecipe.id)
+
+    if (!localRecipe || localRecipe.updatedAt <= remoteRecipe.updatedAt) {
+      byId.set(remoteRecipe.id, remoteRecipe)
+    }
+  }
+
+  return [...byId.values()]
+}
+
+export async function fetchUpdates(lastSyncTimestamp) {
+  const since = normalizeTimestamp(lastSyncTimestamp)
+
+  const { data, error } = await supabase
+    .from(RECIPES_TABLE)
+    .select('*')
+    .gt('updated_at', since)
+    .order('updated_at', { ascending: true })
+
+  if (error) throw error
+
+  return (data ?? []).map(fromDbRecipe)
+}
+
+export async function pushPendingChanges(localRecipes, lastSyncTimestamp) {
+  const user = await getCurrentUser()
+
+  if (!user) {
+    return {
+      pushedCount: 0,
+      pushedRecipes: [],
+    }
+  }
+
+  const since = normalizeTimestamp(lastSyncTimestamp)
+  const pendingRecipes = localRecipes.filter((recipe) => recipe.updatedAt > since)
+
+  if (pendingRecipes.length === 0) {
+    return {
+      pushedCount: 0,
+      pushedRecipes: [],
+    }
+  }
+
+  const payload = pendingRecipes.map((recipe) => toDbRecipe(recipe, user.id))
+
+  const { data, error } = await supabase.from(RECIPES_TABLE).upsert(payload, { onConflict: 'id' }).select('*')
+
+  if (error) throw error
+
+  const pushedRecipes = (data ?? []).map(fromDbRecipe)
+
+  return {
+    pushedCount: pushedRecipes.length,
+    pushedRecipes,
+  }
+}
+
+export async function syncRecipes(localRecipes, lastSyncTimestamp) {
+  const normalizedLocalRecipes = localRecipes.map((recipe) => ({
+    ...recipe,
+    deletedAt: recipe.deletedAt ?? null,
+    updatedAt: recipe.updatedAt ?? recipe.createdAt ?? new Date().toISOString(),
+  }))
+
+  const initialTimestamp = normalizeTimestamp(lastSyncTimestamp)
+  const { pushedCount, pushedRecipes } = await pushPendingChanges(normalizedLocalRecipes, initialTimestamp)
+  const updates = await fetchUpdates(initialTimestamp)
+
+  const mergedRecipes = mergeRecipes(normalizedLocalRecipes, updates)
+  const syncedRecipes = mergeRecipes(mergedRecipes, pushedRecipes)
+
+  const nextTimestamp = getNewestTimestamp([...updates, ...pushedRecipes], initialTimestamp)
+
+  return {
+    recipes: syncedRecipes,
+    lastSyncTimestamp: nextTimestamp,
+    stats: {
+      pushedCount,
+      pulledCount: updates.length,
+    },
+  }
 }
