@@ -5,8 +5,7 @@ export function DeleteRecipeDialog({ recipeTitle, onCancel, onConfirm }) {
         <div className="mb-5">
           <h2 className="text-lg font-semibold text-slate-100">Удалить рецепт?</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Вы уверены, что хотите удалить рецепт «{recipeTitle}»? Это действие можно отменить только через
-            восстановление из архива данных.
+            Вы уверены, что хотите удалить рецепт «{recipeTitle}»?
           </p>
         </div>
 
