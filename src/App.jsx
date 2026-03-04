@@ -6,6 +6,34 @@ import { recipeSorters } from './utils/recipeSorters.js'
 
 const STORAGE_KEY = 'recipes'
 const LIGHTWEIGHT_VIEW_STORAGE_KEY = 'recipes-lightweight-view'
+const RECIPES_PER_PAGE = 10
+
+function getInitialPageFromUrl() {
+  const params = new URLSearchParams(window.location.search)
+  const rawPage = Number.parseInt(params.get('page') ?? '1', 10)
+
+  return Number.isNaN(rawPage) || rawPage < 1 ? 1 : rawPage
+}
+
+function setPageInUrl(page, { replace = false } = {}) {
+  const params = new URLSearchParams(window.location.search)
+
+  if (page <= 1) {
+    params.delete('page')
+  } else {
+    params.set('page', String(page))
+  }
+
+  const query = params.toString()
+  const nextUrl = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`
+
+  if (replace) {
+    window.history.replaceState(null, '', nextUrl)
+    return
+  }
+
+  window.history.pushState(null, '', nextUrl)
+}
 
 const defaultRecipes = [
   {
@@ -76,6 +104,7 @@ function getInitialRecipes() {
 
 export default function App() {
   const [recipes, setRecipes] = useState(getInitialRecipes)
+  const [currentPage, setCurrentPage] = useState(getInitialPageFromUrl)
   const [sortField, setSortField] = useState('createdAt')
   const [sortDirection, setSortDirection] = useState('desc')
   const [showArchivedOnly, setShowArchivedOnly] = useState(false)
@@ -94,6 +123,18 @@ export default function App() {
     localStorage.setItem(LIGHTWEIGHT_VIEW_STORAGE_KEY, String(isLightweightView))
   }, [isLightweightView])
 
+  useEffect(() => {
+    const syncPageFromUrl = () => {
+      setCurrentPage(getInitialPageFromUrl())
+    }
+
+    window.addEventListener('popstate', syncPageFromUrl)
+
+    return () => {
+      window.removeEventListener('popstate', syncPageFromUrl)
+    }
+  }, [])
+
   const visibleRecipes = useMemo(() => {
     const sorted = [...recipes].sort((a, b) => {
       if (a.isQueued !== b.isQueued) return a.isQueued ? -1 : 1
@@ -106,6 +147,27 @@ export default function App() {
       return showArchivedOnly ? recipe.isArchived : !recipe.isArchived
     })
   }, [recipes, showArchivedOnly, sortDirection, sortField])
+
+  const totalPages = Math.max(1, Math.ceil(visibleRecipes.length / RECIPES_PER_PAGE))
+  const normalizedPage = Math.min(currentPage, totalPages)
+  const paginatedRecipes = visibleRecipes.slice(0, normalizedPage * RECIPES_PER_PAGE)
+  const hasMoreRecipes = paginatedRecipes.length < visibleRecipes.length
+  const shouldShowPagination = visibleRecipes.length > RECIPES_PER_PAGE
+  const paginationItems = Array.from({ length: totalPages }, (_, index) => index + 1)
+
+  useEffect(() => {
+    if (normalizedPage !== currentPage) {
+      setCurrentPage(normalizedPage)
+      setPageInUrl(normalizedPage, { replace: true })
+    }
+  }, [currentPage, normalizedPage])
+
+  const setPaginationPage = (nextPage) => {
+    if (nextPage === normalizedPage) return
+
+    setCurrentPage(nextPage)
+    setPageInUrl(nextPage)
+  }
 
   const openCreateForm = () => {
     setEditingId(null)
@@ -250,7 +312,7 @@ export default function App() {
       />
 
       <main className="mt-4 grid gap-4">
-        {visibleRecipes.map((recipe) => (
+        {paginatedRecipes.map((recipe) => (
           <RecipeCard
             key={recipe.id}
             recipe={recipe}
@@ -311,6 +373,33 @@ export default function App() {
           />
         ))}
       </main>
+
+      {shouldShowPagination ? (
+        <section className="mt-6 flex flex-col items-center gap-3">
+          <nav className="flex flex-wrap items-center justify-center gap-2" aria-label="Пагинация рецептов">
+            {paginationItems.map((pageNumber) => (
+              <button
+                key={pageNumber}
+                type="button"
+                className={pageNumber === normalizedPage ? 'btn-primary' : 'btn-secondary'}
+                onClick={() => setPaginationPage(pageNumber)}
+              >
+                {pageNumber}
+              </button>
+            ))}
+          </nav>
+
+          {hasMoreRecipes ? (
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setPaginationPage(normalizedPage + 1)}
+            >
+              Показать ещё
+            </button>
+          ) : null}
+        </section>
+      ) : null}
     </div>
   )
 }
