@@ -71,15 +71,28 @@ export function RecipeCard({
                           Ваш браузер не поддерживает видео.
                         </video>
                       ) : parsedVideo.type === 'youtube' || parsedVideo.type === 'vk' || parsedVideo.type === 'rutube' ? (
-                        <iframe
-                          src={parsedVideo.embedUrl}
-                          title={`Видео рецепта: ${recipe.title}`}
-                          className="h-full w-full rounded-md border-0"
-                          allow="encrypted-media; picture-in-picture; fullscreen"
-                          allowFullScreen
-                          loading="lazy"
-                          referrerPolicy="strict-origin-when-cross-origin"
-                        />
+                        <>
+                          <iframe
+                            src={parsedVideo.embedUrl}
+                            title={`Видео рецепта: ${recipe.title}`}
+                            className="h-full w-full rounded-md border-0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                            allowFullScreen
+                            loading="lazy"
+                            referrerPolicy="strict-origin-when-cross-origin"
+                          />
+                          {parsedVideo.type === 'youtube' && parsedVideo.watchUrl ? (
+                            <a
+                              href={parsedVideo.watchUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="absolute bottom-2 left-2 rounded bg-slate-900/80 px-2 py-1 text-[11px] text-slate-200 underline decoration-slate-400 hover:text-white"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              Открыть на YouTube
+                            </a>
+                          ) : null}
+                        </>
                       ) : (
                         <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-md border border-slate-700 bg-slate-950/80 text-slate-400">
                           <VideoUnavailableIcon className="h-8 w-8" />

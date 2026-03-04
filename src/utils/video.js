@@ -30,6 +30,10 @@ function parseYouTubeVideoId(url) {
   return null
 }
 
+function buildYouTubeWatchUrl(videoId) {
+  return `https://www.youtube.com/watch?v=${videoId}`
+}
+
 
 function parseRutubeVideoId(url) {
   if (url.pathname.startsWith('/video/')) {
@@ -82,9 +86,10 @@ export function parseRecipeVideo(rawUrl) {
 
     return {
       type: 'youtube',
-      embedUrl: `https://www.youtube.com/embed/${videoId}`,
-      autoplayEmbedUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`,
+      embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`,
+      autoplayEmbedUrl: `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`,
       thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+      watchUrl: buildYouTubeWatchUrl(videoId),
     }
   }
 
