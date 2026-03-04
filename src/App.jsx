@@ -17,6 +17,7 @@ export default function App() {
   const syncTimeoutRef = useRef(null)
   const isSyncInProgressRef = useRef(false)
   const hasShownSignedOutToastRef = useRef(false)
+  const recipesRevisionRef = useRef(0)
 
   const [recipes, setRecipes] = useState(() => recipeRepository.getRecipes())
   const [currentPage, setCurrentPage] = useState(getInitialPageFromUrl)
@@ -54,6 +55,7 @@ export default function App() {
     }
 
     isSyncInProgressRef.current = true
+    const syncStartRevision = recipesRevisionRef.current
 
     try {
       const localRecipes = recipeRepository.getRecipes()
@@ -73,6 +75,10 @@ export default function App() {
 
       hasShownSignedOutToastRef.current = false
 
+      if (syncStartRevision !== recipesRevisionRef.current) {
+        return
+      }
+
       recipeRepository.saveRecipes(syncResult.recipes)
       recipeRepository.saveLastSyncTimestamp(syncResult.lastSyncTimestamp)
       setRecipes(syncResult.recipes)
@@ -91,6 +97,7 @@ export default function App() {
   }, [addToast])
 
   useEffect(() => {
+    recipesRevisionRef.current += 1
     recipeRepository.saveRecipes(recipes)
 
     if (syncTimeoutRef.current) {
