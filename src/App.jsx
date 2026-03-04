@@ -225,6 +225,15 @@ export default function App() {
     setPageInUrl(nextPage)
   }
 
+  const scrollToTopAndFirstPage = () => {
+    if (normalizedPage !== 1) {
+      setCurrentPage(1)
+      setPageInUrl(1)
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const openCreateForm = () => {
     setEditingId(null)
     setFormValues(emptyForm)
@@ -478,12 +487,14 @@ export default function App() {
           </nav>
 
           {hasMoreRecipes ? (
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={loadMoreRecipes}
-            >
+            <button type="button" className="btn-secondary" onClick={loadMoreRecipes}>
               Показать ещё
+            </button>
+          ) : null}
+
+          {normalizedPage > 1 ? (
+            <button type="button" className="btn-secondary" onClick={scrollToTopAndFirstPage}>
+              В начало
             </button>
           ) : null}
         </section>
