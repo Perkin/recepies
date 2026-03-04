@@ -462,8 +462,11 @@ export default function App() {
       </main>
 
       {shouldShowPagination ? (
-        <section className="mt-6 flex flex-col items-center gap-3">
-          <nav className="flex flex-wrap items-center justify-center gap-2" aria-label="Пагинация рецептов">
+        <section className="mt-6 flex flex-col gap-3">
+          <nav
+            className="flex flex-wrap items-center justify-center gap-2 self-center"
+            aria-label="Пагинация рецептов"
+          >
             {paginationItems.map((pageNumber) => (
               pageNumber === normalizedPage ? (
                 <span
@@ -486,15 +489,25 @@ export default function App() {
             ))}
           </nav>
 
-          {hasMoreRecipes ? (
-            <button type="button" className="btn-secondary" onClick={loadMoreRecipes}>
-              Показать ещё
-            </button>
-          ) : null}
+          <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center">
+            {hasMoreRecipes ? (
+              <button
+                type="button"
+                className="btn-secondary col-start-2 justify-self-center"
+                onClick={loadMoreRecipes}
+              >
+                Показать ещё
+              </button>
+            ) : null}
 
-          <button type="button" className="btn-secondary" onClick={scrollToTopAndFirstPage}>
-            В начало
-          </button>
+            <button
+              type="button"
+              className="btn-secondary col-start-3 justify-self-end"
+              onClick={scrollToTopAndFirstPage}
+            >
+              В начало
+            </button>
+          </div>
         </section>
       ) : null}
     </div>
