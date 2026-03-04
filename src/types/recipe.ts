@@ -3,11 +3,12 @@ export type Recipe = {
   title: string
   description: string
   createdAt: string
+  updatedAt: string
   lastCookedAt: string | null
   cookCount: number
   isQueued: boolean
   isArchived: boolean
-  isDeleted: boolean
+  deletedAt: string | null
   videoUrl?: string
   ingredients: string
   instructions: string

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AppHeader } from './components/recipe/AppHeader'
 import { RecipeFormSection } from './components/recipe/RecipeFormSection'
 import { RecipeList } from './components/recipe/RecipeList'
@@ -8,9 +8,13 @@ import { emptyRecipeForm, RECIPES_PER_PAGE } from './constants/recipes'
 import { recipeRepository } from './repositories/recipeRepository'
 import { recipeSorters } from './utils/recipeSorters.js'
 import { getInitialPageFromUrl, setPageInUrl } from './utils/pagination'
+import { syncRecipes } from './utils/supabase'
 
 export default function App() {
   const recipeListRef = useRef(null)
+  const syncTimeoutRef = useRef(null)
+  const isSyncInProgressRef = useRef(false)
+
   const [recipes, setRecipes] = useState(() => recipeRepository.getRecipes())
   const [currentPage, setCurrentPage] = useState(getInitialPageFromUrl)
   const [sortField, setSortField] = useState('createdAt')
@@ -23,13 +27,63 @@ export default function App() {
   const [shouldScrollToRecipes, setShouldScrollToRecipes] = useState(false)
   const [returnScrollRecipeId, setReturnScrollRecipeId] = useState(null)
 
+  const runSync = useCallback(async () => {
+    if (isSyncInProgressRef.current) {
+      return
+    }
+
+    isSyncInProgressRef.current = true
+
+    try {
+      const localRecipes = recipeRepository.getRecipes()
+      const lastSyncTimestamp = recipeRepository.getLastSyncTimestamp()
+      const syncResult = await syncRecipes(localRecipes, lastSyncTimestamp)
+
+      recipeRepository.saveRecipes(syncResult.recipes)
+      recipeRepository.saveLastSyncTimestamp(syncResult.lastSyncTimestamp)
+      setRecipes(syncResult.recipes)
+    } catch (error) {
+      console.error('Sync failed', error)
+    } finally {
+      isSyncInProgressRef.current = false
+    }
+  }, [])
+
   useEffect(() => {
     recipeRepository.saveRecipes(recipes)
-  }, [recipes])
+
+    if (syncTimeoutRef.current) {
+      window.clearTimeout(syncTimeoutRef.current)
+    }
+
+    syncTimeoutRef.current = window.setTimeout(() => {
+      runSync()
+    }, 800)
+
+    return () => {
+      if (syncTimeoutRef.current) {
+        window.clearTimeout(syncTimeoutRef.current)
+      }
+    }
+  }, [recipes, runSync])
 
   useEffect(() => {
     recipeRepository.saveIsLightweightView(isLightweightView)
   }, [isLightweightView])
+
+  useEffect(() => {
+    runSync()
+
+    const handleOnline = () => {
+      runSync()
+    }
+
+    window.addEventListener('online', handleOnline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+    }
+  }, [runSync])
 
   useEffect(() => {
     const syncPageFromUrl = () => {
@@ -51,7 +105,7 @@ export default function App() {
     })
 
     return sorted.filter((recipe) => {
-      if (recipe.isDeleted) return false
+      if (recipe.deletedAt) return false
       return showArchivedOnly ? recipe.isArchived : !recipe.isArchived
     })
   }, [recipes, showArchivedOnly, sortDirection, sortField])
@@ -158,7 +212,7 @@ export default function App() {
   const submitForm = (event) => {
     event.preventDefault()
 
-    const now = new Date().toISOString().slice(0, 10)
+    const now = new Date().toISOString()
 
     if (editingId) {
       setRecipes((prev) =>
@@ -167,6 +221,7 @@ export default function App() {
             ? {
                 ...recipe,
                 ...formValues,
+                updatedAt: now,
               }
             : recipe,
         ),
@@ -179,10 +234,11 @@ export default function App() {
       {
         id: crypto.randomUUID(),
         createdAt: now,
+        updatedAt: now,
         lastCookedAt: null,
         cookCount: 0,
         isArchived: false,
-        isDeleted: false,
+        deletedAt: null,
         ...formValues,
       },
       ...prev,
@@ -192,15 +248,16 @@ export default function App() {
   }
 
   const handleCooked = (recipe) => {
-    const today = new Date().toISOString().slice(0, 10)
+    const now = new Date().toISOString()
     setRecipes((prev) =>
       prev.map((item) =>
         item.id === recipe.id
           ? {
               ...item,
               cookCount: item.cookCount + 1,
-              lastCookedAt: today,
+              lastCookedAt: now,
               isQueued: false,
+              updatedAt: now,
             }
           : item,
       ),
@@ -208,11 +265,17 @@ export default function App() {
   }
 
   const handleArchive = (recipe) => {
-    setRecipes((prev) => prev.map((item) => (item.id === recipe.id ? { ...item, isArchived: true } : item)))
+    const now = new Date().toISOString()
+    setRecipes((prev) =>
+      prev.map((item) => (item.id === recipe.id ? { ...item, isArchived: true, updatedAt: now } : item)),
+    )
   }
 
   const handleRestore = (recipe) => {
-    setRecipes((prev) => prev.map((item) => (item.id === recipe.id ? { ...item, isArchived: false } : item)))
+    const now = new Date().toISOString()
+    setRecipes((prev) =>
+      prev.map((item) => (item.id === recipe.id ? { ...item, isArchived: false, updatedAt: now } : item)),
+    )
   }
 
   const handleEdit = (recipe) => {
@@ -236,7 +299,10 @@ export default function App() {
       return
     }
 
-    setRecipes((prev) => prev.map((item) => (item.id === recipe.id ? { ...item, isDeleted: true } : item)))
+    const now = new Date().toISOString()
+    setRecipes((prev) =>
+      prev.map((item) => (item.id === recipe.id ? { ...item, deletedAt: now, updatedAt: now } : item)),
+    )
 
     if (editingId === recipe.id) {
       closeForm()
