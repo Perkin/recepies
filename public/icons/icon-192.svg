@@ -1,7 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-labelledby="title desc">
-  <title id="title">Recipe Flow icon 192</title>
-  <desc id="desc">Темная круглая иконка с буквами RF</desc>
-  <rect width="192" height="192" rx="42" fill="#0f172a"/>
-  <circle cx="96" cy="96" r="64" fill="#1e293b"/>
-  <text x="96" y="112" text-anchor="middle" font-size="56" font-family="Arial, sans-serif" font-weight="700" fill="#f8fafc">RF</text>
+  <title id="title">Мои рецепты icon 192</title>
+  <desc id="desc">Иконка Мои рецепты для PWA</desc>
+  <defs>
+    <linearGradient id="g192" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#f6e58d"/>
+      <stop offset="1" stop-color="#8ea1d3"/>
+    </linearGradient>
+  </defs>
+  <rect x="12" y="12" width="168" height="168" rx="48" fill="#1b2336"/>
+  <path d="M51 81h90a24 24 0 0 1 0 48H51z" fill="url(#g192)"/>
+  <rect x="45" y="66" width="102" height="12" rx="6" fill="#e9edf8"/>
+  <circle cx="72" cy="105" r="6" fill="#1b2336"/>
+  <circle cx="96" cy="105" r="6" fill="#1b2336"/>
+  <circle cx="120" cy="105" r="6" fill="#1b2336"/>
 </svg>

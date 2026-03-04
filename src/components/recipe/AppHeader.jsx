@@ -17,9 +17,8 @@ export function AppHeader({
             <BowlIcon className="h-7 w-7 text-amber-200" />
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-300">Recipe Flow</p>
             <h1 className="font-display text-2xl font-bold leading-tight text-slate-50 sm:text-3xl">
-              Книга рецептов
+              Мои рецепты
             </h1>
           </div>
         </div>

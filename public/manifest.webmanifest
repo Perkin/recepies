@@ -1,7 +1,7 @@
 {
-  "name": "Recipe Flow",
-  "short_name": "RecipeFlow",
-  "description": "Книга рецептов с синхронизацией и быстрым доступом с Android",
+  "name": "Мои рецепты",
+  "short_name": "Мои рецепты",
+  "description": "Мои рецепты с синхронизацией и быстрым доступом с Android",
   "lang": "ru",
   "start_url": "/",
   "scope": "/",
