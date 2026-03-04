@@ -10,7 +10,7 @@ import { emptyRecipeForm, RECIPES_PER_PAGE } from './constants/recipes'
 import { recipeRepository } from './repositories/recipeRepository'
 import { recipeSorters } from './utils/recipeSorters.js'
 import { getInitialPageFromUrl, setPageInUrl } from './utils/pagination'
-import { getCurrentUser, signIn, signOut, signUp, syncRecipes } from './utils/supabase'
+import { signIn, signOut, signUp, supabase, syncRecipes } from './utils/supabase'
 
 export default function App() {
   const recipeListRef = useRef(null)
@@ -135,17 +135,21 @@ export default function App() {
   }, [runSync])
 
   useEffect(() => {
-    const initUser = async () => {
-      try {
-        const user = await getCurrentUser()
-        setCurrentUserEmail(user?.email ?? null)
-      } catch (error) {
-        addToast(`Supabase auth: ${error.message ?? 'Неизвестная ошибка'}`, 'error')
-      }
-    }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      const sessionUser = session?.user ?? null
+      setCurrentUserEmail(sessionUser?.email ?? null)
 
-    initUser()
-  }, [addToast])
+      if (event === 'INITIAL_SESSION' && sessionUser) {
+        runSync()
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [runSync])
 
   useEffect(() => {
     const syncPageFromUrl = () => {
@@ -236,8 +240,6 @@ export default function App() {
       const sessionUser = data.user ?? data.session?.user ?? null
       setCurrentUserEmail(sessionUser?.email ?? email)
       addToast('Supabase auth: вход выполнен', 'success')
-      setAuthModalMode(null)
-      await runSync()
     } catch (error) {
       addToast(`Supabase auth: ${error.message ?? 'Не удалось войти'}`, 'error')
     } finally {
