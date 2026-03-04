@@ -77,3 +77,39 @@ export async function deleteRecipe(id) {
 
   if (error) throw error
 }
+
+export async function fetchUpdates(lastSyncTimestamp) {
+  const { data, error } = await supabase
+    .from('recipшes')
+    .select('*')
+    .gt('updated_at', lastSyncTimestamp)
+    .order('updated_at', { ascending: true })
+
+  if (error) throw error
+  return data
+}
+
+export async function pushPendingChanges(localRecipies, lastSyncTimestamp) {
+  const pending = localRecipies.filter(r => r.updatedAt > lastSyncTimestamp)
+
+  for (const recipe of pending) {
+    if (recipe.createdAt > lastSyncTimestamp) {
+      await supabase.from('recipes').insert([recipe])
+    } else {
+      await supabase
+        .from('recipes')
+        .update(recipe)
+        .eq('id', recipe.id)
+    }
+  }
+}
+
+export async function sync() {
+  await pushPendingChanges(localRecipies, lastSyncTimestamp)
+
+  const updates = await fetchUpdates(lastSyncTimestamp)
+
+  mergeIntoLocalDB(updates)
+
+  saveNewSyncTimestamp()
+}
