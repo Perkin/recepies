@@ -116,6 +116,7 @@ export default function App() {
   const [formValues, setFormValues] = useState(emptyForm)
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [shouldScrollToRecipes, setShouldScrollToRecipes] = useState(false)
+  const [returnScrollRecipeId, setReturnScrollRecipeId] = useState(null)
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes))
@@ -193,6 +194,20 @@ export default function App() {
     window.requestAnimationFrame(animateScroll)
   }, [normalizedPage, shouldScrollToRecipes])
 
+  useEffect(() => {
+    if (!returnScrollRecipeId) {
+      return
+    }
+
+    const cardElement = document.querySelector(`[data-recipe-id="${returnScrollRecipeId}"]`)
+
+    if (cardElement) {
+      cardElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+
+    setReturnScrollRecipeId(null)
+  }, [returnScrollRecipeId, paginatedRecipes])
+
   const setPaginationPage = (nextPage) => {
     if (nextPage === normalizedPage) return
 
@@ -217,7 +232,11 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const resetForm = () => {
+  const resetForm = ({ shouldReturnToCard = false } = {}) => {
+    if (shouldReturnToCard && editingId) {
+      setReturnScrollRecipeId(editingId)
+    }
+
     setEditingId(null)
     setFormValues(emptyForm)
     setIsFormVisible(false)
@@ -239,7 +258,7 @@ export default function App() {
             : recipe,
         ),
       )
-      resetForm()
+      resetForm({ shouldReturnToCard: true })
       return
     }
 
@@ -340,7 +359,11 @@ export default function App() {
               <button type="submit" className="btn-primary btn-emphasis">
                 {editingId ? 'Сохранить' : 'Добавить'}
               </button>
-              <button type="button" className="btn-secondary" onClick={resetForm}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => resetForm({ shouldReturnToCard: Boolean(editingId) })}
+              >
                 {editingId ? 'Отменить' : 'Скрыть форму'}
               </button>
             </div>
@@ -370,6 +393,7 @@ export default function App() {
           <RecipeCard
             key={recipe.id}
             recipe={recipe}
+            recipeId={recipe.id}
             isArchiveView={showArchivedOnly}
             isLightweightView={isLightweightView}
             onCooked={() => {
