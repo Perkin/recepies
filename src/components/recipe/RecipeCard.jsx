@@ -59,9 +59,9 @@ export function RecipeCard({
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               <section className="placeholder-box">
                 <p className="placeholder-title">Видео рецепта</p>
-                <div className="mt-2 flex justify-center rounded-lg border border-dashed border-slate-600/90 bg-slate-900/70 p-2 text-xs text-slate-300">
+                <div className="mt-2 text-xs text-slate-300">
                   {recipe.videoUrl ? (
-                    <div className="relative h-[160px] w-[240px] max-w-full rounded-md bg-slate-950 sm:h-[180px] sm:w-[320px]">
+                    <div className="relative aspect-video w-full rounded-md bg-slate-950">
                       {parsedVideo.type === 'direct' ? (
                         <video
                           controls
@@ -85,7 +85,7 @@ export function RecipeCard({
                         ) : (
                           <button
                             type="button"
-                            className="group relative h-full w-full overflow-hidden rounded-md border border-slate-700 bg-slate-950 text-slate-100"
+                            className="group relative h-full w-full overflow-hidden rounded-md bg-slate-950 text-slate-100"
                             onClick={(event) => {
                               event.stopPropagation()
                               setIsVideoStarted(true)
@@ -99,12 +99,10 @@ export function RecipeCard({
                                 loading="lazy"
                               />
                             ) : (
-                              <div className="flex h-full w-full items-center justify-center bg-slate-900/90 text-xs text-slate-300">
-                                Нажмите, чтобы запустить видео
-                              </div>
+                              <div className="h-full w-full bg-slate-900/90" />
                             )}
                             <span className="absolute inset-0 flex items-center justify-center">
-                              <span className="rounded-full bg-black/65 px-3 py-2 text-xs font-semibold tracking-wide text-white">▶ Смотреть</span>
+                              <span className="rounded-full bg-black/65 px-3 py-2 text-xs font-semibold tracking-wide text-white">▶ Смотреть видео</span>
                             </span>
                           </button>
                         )
@@ -116,7 +114,7 @@ export function RecipeCard({
                       )}
                     </div>
                   ) : (
-                    <div className="flex h-[160px] w-[240px] max-w-full flex-col items-center justify-center gap-2 rounded-md border border-slate-700 bg-slate-950/80 text-slate-400 sm:h-[180px] sm:w-[320px]">
+                    <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-md border border-slate-700 bg-slate-950/80 text-slate-400">
                       <VideoUnavailableIcon className="h-8 w-8" />
                       <span>Видео не загружено</span>
                     </div>
