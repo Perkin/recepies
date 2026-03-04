@@ -26,8 +26,18 @@ export function AppHeader({
 
         <div className="flex flex-col items-start gap-3 sm:items-end">
           {userEmail ? (
-            <div className="text-sm text-emerald-200">
-              Вход выполнен: <span className="font-semibold">{userEmail}</span>
+            <div className="flex items-center gap-3 text-sm">
+              <div className="text-emerald-200">
+                Вход выполнен: <span className="font-semibold">{userEmail}</span>
+              </div>
+              <button
+                type="button"
+                className="text-indigo-200 underline-offset-4 transition hover:text-indigo-100 hover:underline"
+                onClick={onSignOut}
+                disabled={isAuthBusy}
+              >
+                Выйти
+              </button>
             </div>
           ) : (
             <div className="flex items-center gap-3 text-sm">
@@ -51,11 +61,6 @@ export function AppHeader({
           )}
 
           <div className="flex w-full gap-2 sm:w-auto">
-            {userEmail ? (
-              <button type="button" className="btn-secondary" onClick={onSignOut} disabled={isAuthBusy}>
-                Выйти
-              </button>
-            ) : null}
             <button
               type="button"
               className="btn-secondary btn-emphasis w-full justify-center sm:w-auto"
