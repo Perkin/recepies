@@ -19,7 +19,6 @@ export function RecipeCard({
   const borderClass = recipe.isQueued ? 'border-amber-300/70' : 'border-slate-700/60'
   const lastCookedCompact = recipe.lastCookedAt ? formatDate(recipe.lastCookedAt) : '—'
   const parsedVideo = useMemo(() => parseRecipeVideo(recipe.videoUrl?.trim() ?? ''), [recipe.videoUrl])
-  const [isVideoStarted, setIsVideoStarted] = useState(false)
 
   const handleLightweightClick = () => {
     if (!isLightweightView) {
@@ -72,40 +71,15 @@ export function RecipeCard({
                           Ваш браузер не поддерживает видео.
                         </video>
                       ) : parsedVideo.type === 'youtube' || parsedVideo.type === 'vk' || parsedVideo.type === 'rutube' ? (
-                        isVideoStarted ? (
-                          <iframe
-                            src={parsedVideo.autoplayEmbedUrl}
-                            title={`Видео рецепта: ${recipe.title}`}
-                            className="h-full w-full rounded-md border-0"
-                            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                            allowFullScreen
-                            loading="lazy"
-                            referrerPolicy="strict-origin-when-cross-origin"
-                          />
-                        ) : (
-                          <button
-                            type="button"
-                            className="group relative h-full w-full overflow-hidden rounded-md bg-slate-950 text-slate-100"
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              setIsVideoStarted(true)
-                            }}
-                          >
-                            {parsedVideo.thumbnailUrl ? (
-                              <img
-                                src={parsedVideo.thumbnailUrl}
-                                alt={`Превью видео: ${recipe.title}`}
-                                className="h-full w-full object-cover opacity-90 transition group-hover:opacity-100"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="h-full w-full bg-slate-900/90" />
-                            )}
-                            <span className="absolute inset-0 flex items-center justify-center">
-                              <span className="rounded-full bg-black/65 px-3 py-2 text-xs font-semibold tracking-wide text-white">▶ Смотреть видео</span>
-                            </span>
-                          </button>
-                        )
+                        <iframe
+                          src={parsedVideo.embedUrl}
+                          title={`Видео рецепта: ${recipe.title}`}
+                          className="h-full w-full rounded-md border-0"
+                          allow="encrypted-media; picture-in-picture; fullscreen"
+                          allowFullScreen
+                          loading="lazy"
+                          referrerPolicy="strict-origin-when-cross-origin"
+                        />
                       ) : (
                         <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-md border border-slate-700 bg-slate-950/80 text-slate-400">
                           <VideoUnavailableIcon className="h-8 w-8" />
