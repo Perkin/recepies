@@ -15,7 +15,13 @@ export async function signUp(email, password) {
   })
 
   if (error) throw error
-  return data
+
+  const userIdentities = data.user?.identities ?? []
+
+  return {
+    ...data,
+    isExistingAccount: userIdentities.length === 0,
+  }
 }
 
 export async function signIn(email, password) {
