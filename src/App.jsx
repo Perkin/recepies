@@ -152,8 +152,7 @@ export default function App() {
 
   const totalPages = Math.max(1, Math.ceil(visibleRecipes.length / RECIPES_PER_PAGE))
   const normalizedPage = Math.min(currentPage, totalPages)
-  const firstRecipeIndex = (normalizedPage - 1) * RECIPES_PER_PAGE
-  const paginatedRecipes = visibleRecipes.slice(firstRecipeIndex, firstRecipeIndex + RECIPES_PER_PAGE)
+  const paginatedRecipes = visibleRecipes.slice(0, normalizedPage * RECIPES_PER_PAGE)
   const hasMoreRecipes = normalizedPage < totalPages
   const shouldShowPagination = visibleRecipes.length > RECIPES_PER_PAGE
   const paginationItems = Array.from({ length: totalPages }, (_, index) => index + 1)
@@ -198,6 +197,15 @@ export default function App() {
     if (nextPage === normalizedPage) return
 
     setShouldScrollToRecipes(true)
+    setCurrentPage(nextPage)
+    setPageInUrl(nextPage)
+  }
+
+  const loadMoreRecipes = () => {
+    const nextPage = normalizedPage + 1
+
+    if (nextPage > totalPages) return
+
     setCurrentPage(nextPage)
     setPageInUrl(nextPage)
   }
@@ -449,7 +457,7 @@ export default function App() {
             <button
               type="button"
               className="btn-secondary"
-              onClick={() => setPaginationPage(normalizedPage + 1)}
+              onClick={loadMoreRecipes}
             >
               Показать ещё
             </button>
