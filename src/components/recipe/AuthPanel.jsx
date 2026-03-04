@@ -55,17 +55,26 @@ export function AuthPanel({ mode, isBusy, onClose, onSignIn, onSignUp }) {
           </button>
         </div>
 
-        <form className="space-y-3" onSubmit={handleSubmit}>
+        <form
+          className="space-y-3"
+          onSubmit={handleSubmit}
+          autoComplete="on"
+          data-form-type={isSignUp ? 'register' : 'login'}
+        >
           <input
+            id={isSignUp ? 'signup-email' : 'signin-email'}
+            name="username"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             className="input-base"
             placeholder="Email"
-            autoComplete="email"
+            autoComplete={isSignUp ? 'email' : 'username'}
             required
           />
           <input
+            id={isSignUp ? 'signup-password' : 'signin-password'}
+            name={isSignUp ? 'new-password' : 'current-password'}
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -77,6 +86,8 @@ export function AuthPanel({ mode, isBusy, onClose, onSignIn, onSignUp }) {
           />
           {isSignUp ? (
             <input
+              id="signup-password-confirm"
+              name="new-password-confirm"
               type="password"
               value={passwordConfirm}
               onChange={(event) => setPasswordConfirm(event.target.value)}
