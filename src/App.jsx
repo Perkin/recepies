@@ -141,7 +141,7 @@ export default function App() {
       const sessionUser = session?.user ?? null
       setCurrentUserEmail(sessionUser?.email ?? null)
 
-      if (event === 'INITIAL_SESSION' && sessionUser) {
+      if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && sessionUser) {
         runSync()
       }
     })
