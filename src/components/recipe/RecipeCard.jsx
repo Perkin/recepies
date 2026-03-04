@@ -52,33 +52,31 @@ export function RecipeCard({
 
           <p className="mt-2 text-sm text-slate-300">{recipe.description}</p>
 
-          {isLightweightView ? null : (
-            <>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                <section className="placeholder-box">
-                  <p className="placeholder-title">Видео рецепта</p>
-                  <div className="mt-2 rounded-lg border border-dashed border-slate-600/90 bg-slate-900/70 p-2 text-xs text-slate-300">
-                    {recipe.videoUrl ? (
-                      <a href={recipe.videoUrl} target="_blank" rel="noreferrer" className="text-amber-200 underline">
-                        Открыть видео
-                      </a>
-                    ) : (
-                      'Не добавлено'
-                    )}
-                  </div>
-                </section>
-                <section className="placeholder-box">
-                  <p className="placeholder-title">Ингредиенты</p>
-                  <pre className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-300">{recipe.ingredients}</pre>
-                </section>
-              </div>
-
-              <section className="placeholder-box mt-2">
-                <p className="placeholder-title">Инструкции</p>
-                <pre className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-300">{recipe.instructions}</pre>
+          <>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <section className="placeholder-box">
+                <p className="placeholder-title">Видео рецепта</p>
+                <div className="mt-2 rounded-lg border border-dashed border-slate-600/90 bg-slate-900/70 p-2 text-xs text-slate-300">
+                  {recipe.videoUrl ? (
+                    <a href={recipe.videoUrl} target="_blank" rel="noreferrer" className="text-amber-200 underline">
+                      Открыть видео
+                    </a>
+                  ) : (
+                    'Не добавлено'
+                  )}
+                </div>
               </section>
-            </>
-          )}
+              <section className="placeholder-box">
+                <p className="placeholder-title">Ингредиенты</p>
+                <pre className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-300">{recipe.ingredients}</pre>
+              </section>
+            </div>
+
+            <section className="placeholder-box mt-2">
+              <p className="placeholder-title">Инструкции</p>
+              <pre className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-300">{recipe.instructions}</pre>
+            </section>
+          </>
 
           <dl className="mt-3 grid gap-1.5 text-xs">
             <div className="meta-row">
