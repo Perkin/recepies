@@ -240,6 +240,7 @@ export default function App() {
       const sessionUser = data.user ?? data.session?.user ?? null
       setCurrentUserEmail(sessionUser?.email ?? email)
       addToast('Supabase auth: вход выполнен', 'success')
+      setAuthModalMode(null)
     } catch (error) {
       addToast(`Supabase auth: ${error.message ?? 'Не удалось войти'}`, 'error')
     } finally {
@@ -251,7 +252,14 @@ export default function App() {
     setIsAuthBusy(true)
 
     try {
-      await signUp(email, password)
+      const signUpResult = await signUp(email, password)
+
+      if (signUpResult.isExistingAccount) {
+        addToast('Supabase auth: аккаунт уже существует. Войдите через форму входа.', 'info')
+        setAuthModalMode('signin')
+        return
+      }
+
       addToast('Supabase auth: регистрация выполнена. Подтвердите email, если включено подтверждение.', 'success')
       setAuthModalMode(null)
     } catch (error) {
