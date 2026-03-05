@@ -280,6 +280,21 @@ export default function App() {
     )
   }
 
+  const handleQueue = (recipe) => {
+    const now = new Date().toISOString()
+    setRecipes((prev) =>
+      prev.map((item) =>
+        item.id === recipe.id
+          ? {
+              ...item,
+              isQueued: !item.isQueued,
+              updatedAt: now,
+            }
+          : item,
+      ),
+    )
+  }
+
   const handleArchive = (recipe) => {
     const now = new Date().toISOString()
     setRecipes((prev) =>
@@ -394,6 +409,7 @@ export default function App() {
         isArchiveView={showArchivedOnly}
         isLightweightView={isLightweightView}
         onCooked={handleCooked}
+        onQueue={handleQueue}
         onArchive={handleArchive}
         onRestore={handleRestore}
         onEdit={handleEdit}
