@@ -34,8 +34,7 @@ export function useRecipePagination({
     }
 
     return visibleRecipes.filter((recipe) => {
-      const haystack = [recipe.title, recipe.ingredients, recipe.instructions].join(' ').toLowerCase()
-      return haystack.includes(normalizedSearchQuery)
+      return recipe.title.toLowerCase().includes(normalizedSearchQuery)
     })
   }, [isQuickSearchActive, normalizedSearchQuery, visibleRecipes])
 
