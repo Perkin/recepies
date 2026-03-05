@@ -48,6 +48,27 @@ export default function App() {
     setToasts((prev) => prev.filter((toast) => toast.id !== id))
   }, [])
 
+  const animateWindowScrollTo = useCallback((targetTop, durationMs = 300) => {
+    const startTop = window.scrollY
+    const safeTargetTop = Math.max(0, targetTop)
+    const animationStart = performance.now()
+
+    const animateScroll = (timestamp) => {
+      const elapsed = timestamp - animationStart
+      const progress = Math.min(elapsed / durationMs, 1)
+      const easedProgress = 1 - (1 - progress) ** 3
+      const nextTop = startTop + (safeTargetTop - startTop) * easedProgress
+
+      window.scrollTo(0, nextTop)
+
+      if (progress < 1) {
+        window.requestAnimationFrame(animateScroll)
+      }
+    }
+
+    window.requestAnimationFrame(animateScroll)
+  }, [])
+
   const { signIn, signOut, signUp } = useRecipeSync({
     recipes,
     setRecipes,
@@ -89,28 +110,9 @@ export default function App() {
     }
 
     const targetTop = window.scrollY + recipeListRef.current.getBoundingClientRect().top
-    const startTop = window.scrollY
-    const animationDurationMs = 300
-    const animationStart = performance.now()
-
-    const animateScroll = (timestamp) => {
-      const elapsed = timestamp - animationStart
-      const progress = Math.min(elapsed / animationDurationMs, 1)
-      const easedProgress = 1 - (1 - progress) ** 3
-      const nextTop = startTop + (targetTop - startTop) * easedProgress
-
-      window.scrollTo(0, nextTop)
-
-      if (progress < 1) {
-        window.requestAnimationFrame(animateScroll)
-        return
-      }
-
-      setShouldScrollToRecipes(false)
-    }
-
-    window.requestAnimationFrame(animateScroll)
-  }, [normalizedPage, shouldScrollToRecipes])
+    animateWindowScrollTo(targetTop)
+    setShouldScrollToRecipes(false)
+  }, [animateWindowScrollTo, normalizedPage, shouldScrollToRecipes])
 
   useEffect(() => {
     if (!returnScrollRecipeId) {
@@ -120,11 +122,14 @@ export default function App() {
     const cardElement = document.querySelector(`[data-recipe-id="${returnScrollRecipeId}"]`)
 
     if (cardElement) {
-      cardElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      const cardRect = cardElement.getBoundingClientRect()
+      const targetTop = window.scrollY + cardRect.top - (window.innerHeight - cardRect.height) / 2
+
+      animateWindowScrollTo(targetTop)
     }
 
     setReturnScrollRecipeId(null)
-  }, [returnScrollRecipeId, paginatedRecipes])
+  }, [animateWindowScrollTo, returnScrollRecipeId, paginatedRecipes])
 
   const handleSignIn = async (email, password) => {
     setIsAuthBusy(true)
@@ -299,7 +304,7 @@ export default function App() {
       videoUrl: recipe.videoUrl ?? '',
       isQueued: recipe.isQueued,
     })
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    animateWindowScrollTo(0)
   }
 
   const handleDelete = (recipe) => {
