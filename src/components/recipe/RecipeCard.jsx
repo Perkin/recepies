@@ -155,65 +155,70 @@ export function RecipeCard({
             </div>
           </dl>
 
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-            {isArchiveView ? null : (
-              <button
-                type="button"
-                className="btn-primary btn-emphasis btn-compact justify-center"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  onCooked()
-                }}
-              >
-                <CheckIcon className="h-3.5 w-3.5" />
-                Приготовлено
-              </button>
-            )}
-            {isArchiveView ? (
-              <button
-                type="button"
-                className="btn-secondary btn-compact justify-center"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  onRestore()
-                }}
-              >
-                <ArchiveIcon className="h-3.5 w-3.5" />Из архива
-              </button>
-            ) : (
+          <div className="mt-3 flex flex-wrap gap-2">
+            <div className="grid flex-1 grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:flex-none">
+              {isArchiveView ? null : (
+                <button
+                  type="button"
+                  className="btn-primary btn-emphasis btn-compact justify-center"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onCooked()
+                  }}
+                >
+                  <CheckIcon className="h-3.5 w-3.5" />
+                  Приготовлено
+                </button>
+              )}
               <button
                 type="button"
                 className="btn-secondary btn-compact justify-center"
                 onClick={(event) => {
                   event.stopPropagation()
-                  onArchive()
+                  onEdit()
                 }}
               >
-                <ArchiveIcon className="h-3.5 w-3.5" />В архив
+                <EditIcon className="h-3.5 w-3.5" />
+                Изменить
               </button>
-            )}
-            <button
-              type="button"
-              className="btn-secondary btn-compact justify-center"
-              onClick={(event) => {
-                event.stopPropagation()
-                onEdit()
-              }}
-            >
-              <EditIcon className="h-3.5 w-3.5" />
-              Изменить
-            </button>
-            <button
-              type="button"
-              className="btn-secondary btn-compact btn-danger justify-center"
-              onClick={(event) => {
-                event.stopPropagation()
-                onDelete()
-              }}
-            >
-              <DeleteIcon className="h-3.5 w-3.5" />
-              Удалить
-            </button>
+            </div>
+
+            <div className="ml-auto grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+              {isArchiveView ? (
+                <button
+                  type="button"
+                  className="btn-secondary btn-compact justify-center"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onRestore()
+                  }}
+                >
+                  <ArchiveIcon className="h-3.5 w-3.5" />Из архива
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn-secondary btn-compact justify-center"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onArchive()
+                  }}
+                >
+                  <ArchiveIcon className="h-3.5 w-3.5" />В архив
+                </button>
+              )}
+              <button
+                type="button"
+                className="btn-secondary btn-compact btn-danger justify-center"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onDelete()
+                }}
+              >
+                <DeleteIcon className="h-3.5 w-3.5" />
+                Удалить
+              </button>
+            </div>
           </div>
         </>
       ) : (
