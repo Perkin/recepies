@@ -26,7 +26,9 @@ export function useRecipePagination({
 
   const totalPages = Math.max(1, Math.ceil(visibleRecipes.length / RECIPES_PER_PAGE))
   const normalizedPage = Math.min(currentPage, totalPages)
-  const paginatedRecipes = visibleRecipes.slice(0, normalizedPage * RECIPES_PER_PAGE)
+  const pageStartIndex = (normalizedPage - 1) * RECIPES_PER_PAGE
+  const pageEndIndex = pageStartIndex + RECIPES_PER_PAGE
+  const paginatedRecipes = visibleRecipes.slice(pageStartIndex, pageEndIndex)
   const hasMoreRecipes = normalizedPage < totalPages
   const shouldShowPagination = visibleRecipes.length > RECIPES_PER_PAGE
 
