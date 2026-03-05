@@ -1,33 +1,19 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ToastViewport } from './components/common/ToastViewport'
 import { AppHeader } from './components/recipe/AppHeader'
 import { AuthPanel } from './components/recipe/AuthPanel'
 import { RecipeFormSection } from './components/recipe/RecipeFormSection'
 import { DeleteRecipeDialog } from './components/recipe/DeleteRecipeDialog'
-import { RecipeList } from './components/recipe/RecipeList'
-import { RecipePagination } from './components/recipe/RecipePagination'
-import { SortControls } from './components/recipe/SortControls'
+import { RecipeCatalogSection } from './components/recipe/RecipeCatalogSection'
 import { emptyRecipeForm } from './constants/recipes'
-import { useRecipePagination } from './hooks/useRecipePagination'
 import { useRecipeSync } from './hooks/useRecipeSync'
 import { recipeRepository } from './repositories/recipeRepository'
-import { getInitialPageFromUrl, setPageInUrl } from './utils/pagination'
 
 export default function App() {
-  const recipeListRef = useRef(null)
-
   const [recipes, setRecipes] = useState(() => recipeRepository.getRecipes())
-  const [currentPage, setCurrentPage] = useState(getInitialPageFromUrl)
-  const [sortField, setSortField] = useState('createdAt')
-  const [sortDirection, setSortDirection] = useState('desc')
-  const [showArchivedOnly, setShowArchivedOnly] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
-  const [isLightweightView, setIsLightweightView] = useState(() => recipeRepository.getIsLightweightView())
   const [editingId, setEditingId] = useState(null)
   const [formValues, setFormValues] = useState(emptyRecipeForm)
   const [isFormVisible, setIsFormVisible] = useState(false)
-  const [shouldScrollToRecipes, setShouldScrollToRecipes] = useState(false)
   const [returnScrollRecipeId, setReturnScrollRecipeId] = useState(null)
   const [toasts, setToasts] = useState([])
   const [isAuthBusy, setIsAuthBusy] = useState(false)
@@ -82,52 +68,6 @@ export default function App() {
   })
 
   useEffect(() => {
-    recipeRepository.saveIsLightweightView(isLightweightView)
-  }, [isLightweightView])
-
-  useEffect(() => {
-    const syncPageFromUrl = () => {
-      setCurrentPage(getInitialPageFromUrl())
-    }
-
-    window.addEventListener('popstate', syncPageFromUrl)
-
-    return () => {
-      window.removeEventListener('popstate', syncPageFromUrl)
-    }
-  }, [])
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery)
-    }, 300)
-
-    return () => {
-      window.clearTimeout(timeoutId)
-    }
-  }, [searchQuery])
-
-  const { hasMoreRecipes, normalizedPage, paginatedRecipes, shouldShowPagination, totalPages } = useRecipePagination({
-    recipes,
-    sortField,
-    sortDirection,
-    showArchivedOnly,
-    currentPage,
-    setCurrentPage,
-    searchQuery: debouncedSearchQuery,
-  })
-
-  useEffect(() => {
-    if (!shouldScrollToRecipes || !recipeListRef.current) {
-      return
-    }
-
-    const targetTop = window.scrollY + recipeListRef.current.getBoundingClientRect().top
-    animateWindowScrollTo(targetTop)
-    setShouldScrollToRecipes(false)
-  }, [animateWindowScrollTo, normalizedPage, shouldScrollToRecipes])
-
-  useEffect(() => {
     if (!returnScrollRecipeId) {
       return
     }
@@ -142,7 +82,7 @@ export default function App() {
     }
 
     setReturnScrollRecipeId(null)
-  }, [animateWindowScrollTo, returnScrollRecipeId, paginatedRecipes])
+  }, [animateWindowScrollTo, returnScrollRecipeId, recipes])
 
   const handleSignIn = async (email, password) => {
     setIsAuthBusy(true)
@@ -210,32 +150,6 @@ export default function App() {
     setEditingId(null)
     setFormValues(emptyRecipeForm)
     setIsFormVisible(false)
-  }
-
-  const setPaginationPage = (nextPage) => {
-    if (nextPage === normalizedPage) return
-
-    setShouldScrollToRecipes(true)
-    setCurrentPage(nextPage)
-    setPageInUrl(nextPage)
-  }
-
-  const loadMoreRecipes = () => {
-    const nextPage = normalizedPage + 1
-
-    if (nextPage > totalPages) return
-
-    setCurrentPage(nextPage)
-    setPageInUrl(nextPage)
-  }
-
-  const scrollToTopAndFirstPage = () => {
-    if (normalizedPage !== 1) {
-      setCurrentPage(1)
-      setPageInUrl(1)
-    }
-
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const submitForm = (event) => {
@@ -398,31 +312,9 @@ export default function App() {
         />
       ) : null}
 
-      <SortControls
-        sortField={sortField}
-        sortDirection={sortDirection}
-        showArchivedOnly={showArchivedOnly}
-        isLightweightView={isLightweightView}
-        searchQuery={searchQuery}
-        onSortChange={(nextSortField) => {
-          if (nextSortField === sortField) {
-            setSortDirection((prevDirection) => (prevDirection === 'asc' ? 'desc' : 'asc'))
-            return
-          }
-
-          setSortField(nextSortField)
-        }}
-        onSearchQueryChange={setSearchQuery}
-        onArchiveFilterChange={setShowArchivedOnly}
-        onLightweightViewChange={setIsLightweightView}
-      />
-
-      <RecipeList
-        listRef={recipeListRef}
-        recipes={paginatedRecipes}
+      <RecipeCatalogSection
+        recipes={recipes}
         newRecipeIds={newRecipeIds}
-        isArchiveView={showArchivedOnly}
-        isLightweightView={isLightweightView}
         onCooked={handleCooked}
         onQueue={handleQueue}
         onArchive={handleArchive}
@@ -430,17 +322,6 @@ export default function App() {
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
-
-      {shouldShowPagination ? (
-        <RecipePagination
-          currentPage={normalizedPage}
-          totalPages={totalPages}
-          hasMoreRecipes={hasMoreRecipes}
-          onPageChange={setPaginationPage}
-          onLoadMore={loadMoreRecipes}
-          onScrollToTop={scrollToTopAndFirstPage}
-        />
-      ) : null}
     </div>
   )
 }
