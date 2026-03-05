@@ -20,6 +20,7 @@ export function RecipeCard({
   const borderClass = recipe.isQueued ? 'border-amber-300/70' : 'border-slate-700/60'
   const lastCookedCompact = recipe.lastCookedAt ? formatDate(recipe.lastCookedAt) : '—'
   const parsedVideo = useMemo(() => parseRecipeVideo(recipe.videoUrl?.trim() ?? ''), [recipe.videoUrl])
+  const hasInstructions = Boolean(recipe.instructions?.trim())
 
   const handleLightweightClick = () => {
     if (!isLightweightView) {
@@ -114,10 +115,12 @@ export function RecipeCard({
               </section>
             </div>
 
-            <section className="placeholder-box mt-2">
-              <p className="placeholder-title">Инструкции</p>
-              <pre className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-300">{recipe.instructions}</pre>
-            </section>
+            {hasInstructions ? (
+              <section className="placeholder-box mt-2">
+                <p className="placeholder-title">Инструкции</p>
+                <pre className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-300">{recipe.instructions}</pre>
+              </section>
+            ) : null}
           </>
 
           <dl className="mt-3 grid gap-1.5 text-xs">
