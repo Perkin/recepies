@@ -9,6 +9,7 @@ export function RecipeCard({
   isArchiveView,
   isLightweightView,
   onCooked,
+  onQueue,
   onArchive,
   onRestore,
   onEdit,
@@ -158,17 +159,29 @@ export function RecipeCard({
           <div className="mt-3 flex flex-wrap gap-2">
             <div className="grid flex-1 grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:flex-none">
               {isArchiveView ? null : (
-                <button
-                  type="button"
-                  className="btn-primary btn-emphasis btn-compact justify-center"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    onCooked()
-                  }}
-                >
-                  <CheckIcon className="h-3.5 w-3.5" />
-                  Приготовлено
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className="btn-primary btn-emphasis btn-compact justify-center"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onCooked()
+                    }}
+                  >
+                    <CheckIcon className="h-3.5 w-3.5" />
+                    Приготовлено
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn-compact justify-center ${recipe.isQueued ? 'btn-primary' : 'btn-secondary'}`}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onQueue()
+                    }}
+                  >
+                    В очередь
+                  </button>
+                </>
               )}
               <button
                 type="button"

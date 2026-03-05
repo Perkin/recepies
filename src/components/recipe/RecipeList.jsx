@@ -5,6 +5,7 @@ export function RecipeList({
   isArchiveView,
   isLightweightView,
   onCooked,
+  onQueue,
   onArchive,
   onRestore,
   onEdit,
@@ -23,6 +24,7 @@ export function RecipeList({
           isNew={newRecipeIds.includes(recipe.id)}
           isLightweightView={isLightweightView}
           onCooked={() => onCooked(recipe)}
+          onQueue={() => onQueue(recipe)}
           onArchive={() => onArchive(recipe)}
           onRestore={() => onRestore(recipe)}
           onEdit={() => onEdit(recipe)}
