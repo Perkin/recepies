@@ -13,6 +13,7 @@ export function RecipeCard({
   onRestore,
   onEdit,
   onDelete,
+  isNew = false,
 }) {
   const [isExpandedInLightweight, setIsExpandedInLightweight] = useState(false)
   const shouldShowFullCard = !isLightweightView || isExpandedInLightweight
@@ -52,7 +53,14 @@ export function RecipeCard({
       {shouldShowFullCard ? (
         <>
           <div className="flex flex-wrap items-start justify-between gap-2">
-            <h2 className="text-lg font-semibold leading-tight text-slate-100">{recipe.title}</h2>
+            <div className="flex flex-wrap items-center gap-2">
+              {isNew ? (
+                <span className="rounded-md border border-amber-300/80 bg-amber-300/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-100">
+                  new
+                </span>
+              ) : null}
+              <h2 className="text-lg font-semibold leading-tight text-slate-100">{recipe.title}</h2>
+            </div>
           </div>
 
           <>
@@ -211,7 +219,14 @@ export function RecipeCard({
       ) : (
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-slate-100">{recipe.title}</p>
+            <div className="flex items-center gap-2 min-w-0">
+              {isNew ? (
+                <span className="rounded-md border border-amber-300/80 bg-amber-300/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-100">
+                  new
+                </span>
+              ) : null}
+              <p className="truncate text-sm font-semibold text-slate-100">{recipe.title}</p>
+            </div>
           </div>
 
           <div className="grid grid-cols-[5.5rem_4.5rem_5.5rem] gap-2 text-center tabular-nums">
