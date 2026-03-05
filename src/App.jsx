@@ -21,6 +21,8 @@ export default function App() {
   const [sortField, setSortField] = useState('createdAt')
   const [sortDirection, setSortDirection] = useState('desc')
   const [showArchivedOnly, setShowArchivedOnly] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
   const [isLightweightView, setIsLightweightView] = useState(() => recipeRepository.getIsLightweightView())
   const [editingId, setEditingId] = useState(null)
   const [formValues, setFormValues] = useState(emptyRecipeForm)
@@ -74,6 +76,16 @@ export default function App() {
     }
   }, [])
 
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery)
+    }, 300)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [searchQuery])
+
   const { hasMoreRecipes, normalizedPage, paginatedRecipes, shouldShowPagination, totalPages } = useRecipePagination({
     recipes,
     sortField,
@@ -81,6 +93,7 @@ export default function App() {
     showArchivedOnly,
     currentPage,
     setCurrentPage,
+    searchQuery: debouncedSearchQuery,
   })
 
   useEffect(() => {
@@ -370,6 +383,7 @@ export default function App() {
         sortDirection={sortDirection}
         showArchivedOnly={showArchivedOnly}
         isLightweightView={isLightweightView}
+        searchQuery={searchQuery}
         onSortChange={(nextSortField) => {
           if (nextSortField === sortField) {
             setSortDirection((prevDirection) => (prevDirection === 'asc' ? 'desc' : 'asc'))
@@ -378,6 +392,7 @@ export default function App() {
 
           setSortField(nextSortField)
         }}
+        onSearchQueryChange={setSearchQuery}
         onArchiveFilterChange={setShowArchivedOnly}
         onLightweightViewChange={setIsLightweightView}
       />

@@ -10,6 +10,7 @@ export function useRecipePagination({
   showArchivedOnly,
   currentPage,
   setCurrentPage,
+  searchQuery,
 }) {
   const visibleRecipes = useMemo(() => {
     const sorted = [...recipes].sort((a, b) => {
@@ -24,18 +25,34 @@ export function useRecipePagination({
     })
   }, [recipes, showArchivedOnly, sortDirection, sortField])
 
-  const totalPages = Math.max(1, Math.ceil(visibleRecipes.length / RECIPES_PER_PAGE))
-  const normalizedPage = Math.min(currentPage, totalPages)
-  const paginatedRecipes = visibleRecipes.slice(0, normalizedPage * RECIPES_PER_PAGE)
-  const hasMoreRecipes = normalizedPage < totalPages
-  const shouldShowPagination = visibleRecipes.length > RECIPES_PER_PAGE
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase()
+  const isQuickSearchActive = normalizedSearchQuery.length >= 3
+
+  const filteredRecipes = useMemo(() => {
+    if (!isQuickSearchActive) {
+      return visibleRecipes
+    }
+
+    return visibleRecipes.filter((recipe) => {
+      const haystack = [recipe.title, recipe.ingredients, recipe.instructions].join(' ').toLowerCase()
+      return haystack.includes(normalizedSearchQuery)
+    })
+  }, [isQuickSearchActive, normalizedSearchQuery, visibleRecipes])
+
+  const totalPages = isQuickSearchActive ? 1 : Math.max(1, Math.ceil(filteredRecipes.length / RECIPES_PER_PAGE))
+  const normalizedPage = isQuickSearchActive ? 1 : Math.min(currentPage, totalPages)
+  const paginatedRecipes = isQuickSearchActive
+    ? filteredRecipes
+    : filteredRecipes.slice(0, normalizedPage * RECIPES_PER_PAGE)
+  const hasMoreRecipes = isQuickSearchActive ? false : normalizedPage < totalPages
+  const shouldShowPagination = isQuickSearchActive ? false : filteredRecipes.length > RECIPES_PER_PAGE
 
   useEffect(() => {
     if (normalizedPage !== currentPage) {
       setCurrentPage(normalizedPage)
       setPageInUrl(normalizedPage, { replace: true })
     }
-  }, [currentPage, normalizedPage, setCurrentPage])
+  }, [currentPage, isQuickSearchActive, normalizedPage, setCurrentPage])
 
   return {
     hasMoreRecipes,
