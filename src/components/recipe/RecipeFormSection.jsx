@@ -27,16 +27,6 @@ export function RecipeFormSection({
           />
         </label>
         <label className="text-sm text-slate-200">
-          Краткое описание <span className="text-rose-400">*</span>
-          <textarea
-            className="input-base mt-1 min-h-20"
-            placeholder="Краткое описание"
-            required
-            value={values.description}
-            onChange={updateField('description')}
-          />
-        </label>
-        <label className="text-sm text-slate-200">
           Ингредиенты
           <textarea
             className="input-base mt-1 min-h-24"

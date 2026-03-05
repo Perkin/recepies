@@ -21,7 +21,6 @@ function areRecipesEqual(left, right) {
     return (
       recipe.id === other.id &&
       recipe.title === other.title &&
-      recipe.description === other.description &&
       recipe.ingredients === other.ingredients &&
       recipe.instructions === other.instructions &&
       recipe.videoUrl === other.videoUrl &&

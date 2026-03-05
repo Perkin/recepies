@@ -5,7 +5,6 @@ export const RECIPES_PER_PAGE = 10
 
 export const emptyRecipeForm = {
   title: '',
-  description: '',
   ingredients: '',
   instructions: '',
   videoUrl: '',
