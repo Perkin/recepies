@@ -26,6 +26,8 @@ export function SortControls({
   sortDirection,
   showArchivedOnly,
   isLightweightView,
+  searchQuery,
+  onSearchQueryChange,
   onSortChange,
   onArchiveFilterChange,
   onLightweightViewChange,
@@ -58,7 +60,19 @@ export function SortControls({
         )
       })}
 
-      <div className="ml-auto flex flex-wrap items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
+        <label className="inline-flex items-center gap-2 text-sm text-slate-200">
+          <span className="whitespace-nowrap text-slate-300">Быстрый поиск</span>
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(event) => onSearchQueryChange(event.target.value)}
+            placeholder="От 3 букв"
+            className="w-48 rounded-lg border border-slate-600/70 bg-slate-900/80 px-3 py-1.5 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-amber-300/70"
+            aria-label="Быстрый поиск по рецептам"
+          />
+        </label>
+
         <label className="inline-flex items-center gap-2 text-sm text-slate-200">
           <input
             type="checkbox"
