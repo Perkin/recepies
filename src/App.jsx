@@ -32,6 +32,7 @@ export default function App() {
   const [currentUserEmail, setCurrentUserEmail] = useState(null)
   const [authModalMode, setAuthModalMode] = useState(null)
   const [recipePendingDeletion, setRecipePendingDeletion] = useState(null)
+  const [newRecipeIds, setNewRecipeIds] = useState([])
 
   const addToast = useCallback((message, type = 'info') => {
     const id = crypto.randomUUID()
@@ -52,6 +53,9 @@ export default function App() {
     setRecipes,
     addToast,
     setCurrentUserEmail,
+    onPulledNewRecipes: (pulledIds) => {
+      setNewRecipeIds((prevIds) => [...new Set([...prevIds, ...pulledIds])])
+    },
   })
 
   useEffect(() => {
@@ -381,6 +385,7 @@ export default function App() {
       <RecipeList
         listRef={recipeListRef}
         recipes={paginatedRecipes}
+        newRecipeIds={newRecipeIds}
         isArchiveView={showArchivedOnly}
         isLightweightView={isLightweightView}
         onCooked={handleCooked}

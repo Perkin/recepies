@@ -35,7 +35,7 @@ function areRecipesEqual(left, right) {
   })
 }
 
-export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEmail }) {
+export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEmail, onPulledNewRecipes }) {
   const syncTimeoutRef = useRef(null)
   const isSyncInProgressRef = useRef(false)
   const hasShownSignedOutToastRef = useRef(false)
@@ -51,6 +51,7 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
 
     try {
       const localRecipes = recipeRepository.getRecipes()
+      const localRecipeIds = new Set(localRecipes.map((recipe) => recipe.id))
       const lastSyncTimestamp = recipeRepository.getLastSyncTimestamp()
       const syncResult = await syncRecipes(localRecipes, lastSyncTimestamp)
 
@@ -82,6 +83,14 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
         return syncResult.recipes
       })
 
+      const pulledNewRecipeIds = syncResult.recipes
+        .filter((recipe) => !localRecipeIds.has(recipe.id))
+        .map((recipe) => recipe.id)
+
+      if (pulledNewRecipeIds.length > 0) {
+        onPulledNewRecipes?.(pulledNewRecipeIds)
+      }
+
       if (syncResult.stats.pushedCount || syncResult.stats.pulledCount) {
         addToast(
           `Supabase: отправлено ${syncResult.stats.pushedCount}, получено ${syncResult.stats.pulledCount}`,
@@ -93,7 +102,7 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
     } finally {
       isSyncInProgressRef.current = false
     }
-  }, [addToast, setCurrentUserEmail, setRecipes])
+  }, [addToast, onPulledNewRecipes, setCurrentUserEmail, setRecipes])
 
   useEffect(() => {
     recipesRevisionRef.current += 1

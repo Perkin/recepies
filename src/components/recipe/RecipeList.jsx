@@ -10,6 +10,7 @@ export function RecipeList({
   onEdit,
   onDelete,
   listRef,
+  newRecipeIds = [],
 }) {
   return (
     <main ref={listRef} className="mt-4 grid gap-4">
@@ -19,6 +20,7 @@ export function RecipeList({
           recipe={recipe}
           recipeId={recipe.id}
           isArchiveView={isArchiveView}
+          isNew={newRecipeIds.includes(recipe.id)}
           isLightweightView={isLightweightView}
           onCooked={() => onCooked(recipe)}
           onArchive={() => onArchive(recipe)}
