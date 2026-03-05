@@ -1,7 +1,6 @@
 export type Recipe = {
   id: string
   title: string
-  description: string
   createdAt: string
   updatedAt: string
   lastCookedAt: string | null

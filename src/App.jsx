@@ -290,7 +290,6 @@ export default function App() {
     setIsFormVisible(true)
     setFormValues({
       title: recipe.title,
-      description: recipe.description,
       ingredients: recipe.ingredients,
       instructions: recipe.instructions,
       videoUrl: recipe.videoUrl ?? '',

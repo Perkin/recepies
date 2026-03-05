@@ -54,8 +54,6 @@ export function RecipeCard({
             <h2 className="text-lg font-semibold leading-tight text-slate-100">{recipe.title}</h2>
           </div>
 
-          <p className="mt-2 text-sm text-slate-300">{recipe.description}</p>
-
           <>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               <section className="placeholder-box">
@@ -211,7 +209,6 @@ export function RecipeCard({
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-100">{recipe.title}</p>
-            <p className="truncate text-xs text-slate-300">{recipe.description}</p>
           </div>
 
           <div className="grid grid-cols-[5.5rem_4.5rem_5.5rem] gap-2 text-center tabular-nums">

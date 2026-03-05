@@ -62,7 +62,6 @@ function toDbRecipe(recipe, userId) {
     id: recipe.id,
     user_id: userId,
     title: recipe.title,
-    description: recipe.description,
     ingredients: recipe.ingredients,
     instructions: recipe.instructions,
     video_url: recipe.videoUrl ?? null,
@@ -80,7 +79,6 @@ function fromDbRecipe(recipe) {
   return {
     id: recipe.id,
     title: recipe.title,
-    description: recipe.description ?? '',
     ingredients: recipe.ingredients ?? '',
     instructions: recipe.instructions ?? '',
     videoUrl: recipe.video_url ?? '',
