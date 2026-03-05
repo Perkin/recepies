@@ -41,9 +41,11 @@ export function useRecipePagination({
 
   const totalPages = isQuickSearchActive ? 1 : Math.max(1, Math.ceil(filteredRecipes.length / RECIPES_PER_PAGE))
   const normalizedPage = isQuickSearchActive ? 1 : Math.min(currentPage, totalPages)
+  const pageStartIndex = (normalizedPage - 1) * RECIPES_PER_PAGE
+  const pageEndIndex = pageStartIndex + RECIPES_PER_PAGE
   const paginatedRecipes = isQuickSearchActive
     ? filteredRecipes
-    : filteredRecipes.slice(0, normalizedPage * RECIPES_PER_PAGE)
+    : filteredRecipes.slice(pageStartIndex, pageEndIndex)
   const hasMoreRecipes = isQuickSearchActive ? false : normalizedPage < totalPages
   const shouldShowPagination = isQuickSearchActive ? false : filteredRecipes.length > RECIPES_PER_PAGE
 
