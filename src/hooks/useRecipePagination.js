@@ -11,6 +11,7 @@ export function useRecipePagination({
   currentPage,
   setCurrentPage,
   searchQuery,
+  appendedFromPage,
 }) {
   const visibleRecipes = useMemo(() => {
     const sorted = [...recipes].sort((a, b) => {
@@ -40,8 +41,13 @@ export function useRecipePagination({
 
   const totalPages = isQuickSearchActive ? 1 : Math.max(1, Math.ceil(filteredRecipes.length / RECIPES_PER_PAGE))
   const normalizedPage = isQuickSearchActive ? 1 : Math.min(currentPage, totalPages)
-  const pageStartIndex = (normalizedPage - 1) * RECIPES_PER_PAGE
-  const pageEndIndex = pageStartIndex + RECIPES_PER_PAGE
+  const normalizedAppendedFromPage = isQuickSearchActive
+    ? null
+    : appendedFromPage == null
+      ? null
+      : Math.min(appendedFromPage, normalizedPage)
+  const pageStartIndex = normalizedAppendedFromPage == null ? (normalizedPage - 1) * RECIPES_PER_PAGE : 0
+  const pageEndIndex = normalizedPage * RECIPES_PER_PAGE
   const paginatedRecipes = isQuickSearchActive
     ? filteredRecipes
     : filteredRecipes.slice(pageStartIndex, pageEndIndex)

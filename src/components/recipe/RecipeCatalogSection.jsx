@@ -25,6 +25,7 @@ export function RecipeCatalogSection({
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
   const [isLightweightView, setIsLightweightView] = useState(() => recipeRepository.getIsLightweightView())
   const [shouldScrollToRecipes, setShouldScrollToRecipes] = useState(false)
+  const [appendedFromPage, setAppendedFromPage] = useState(null)
 
   const animateWindowScrollTo = useCallback((targetTop, durationMs = 300) => {
     const startTop = window.scrollY
@@ -54,6 +55,7 @@ export function RecipeCatalogSection({
   useEffect(() => {
     const syncPageFromUrl = () => {
       setCurrentPage(getInitialPageFromUrl())
+      setAppendedFromPage(null)
     }
 
     window.addEventListener('popstate', syncPageFromUrl)
@@ -81,7 +83,12 @@ export function RecipeCatalogSection({
     currentPage,
     setCurrentPage,
     searchQuery: debouncedSearchQuery,
+    appendedFromPage,
   })
+
+  useEffect(() => {
+    setAppendedFromPage(null)
+  }, [sortField, sortDirection, showArchivedOnly, debouncedSearchQuery])
 
   useEffect(() => {
     if (!shouldScrollToRecipes || !recipeListRef.current) {
@@ -96,6 +103,7 @@ export function RecipeCatalogSection({
   const setPaginationPage = (nextPage) => {
     if (nextPage === normalizedPage) return
 
+    setAppendedFromPage(null)
     setShouldScrollToRecipes(true)
     setCurrentPage(nextPage)
     setPageInUrl(nextPage)
@@ -106,11 +114,14 @@ export function RecipeCatalogSection({
 
     if (nextPage > totalPages) return
 
+    setAppendedFromPage((prevPage) => prevPage ?? normalizedPage)
     setCurrentPage(nextPage)
     setPageInUrl(nextPage)
   }
 
   const scrollToTopAndFirstPage = () => {
+    setAppendedFromPage(null)
+
     if (normalizedPage !== 1) {
       setCurrentPage(1)
       setPageInUrl(1)
