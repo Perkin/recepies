@@ -130,10 +130,22 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
       runSync()
     }
 
+    const handleAppVisible = () => {
+      if (document.visibilityState === 'visible') {
+        runSync()
+      }
+    }
+
     window.addEventListener('online', handleOnline)
+    window.addEventListener('focus', handleAppVisible)
+    window.addEventListener('pageshow', handleAppVisible)
+    document.addEventListener('visibilitychange', handleAppVisible)
 
     return () => {
       window.removeEventListener('online', handleOnline)
+      window.removeEventListener('focus', handleAppVisible)
+      window.removeEventListener('pageshow', handleAppVisible)
+      document.removeEventListener('visibilitychange', handleAppVisible)
     }
   }, [runSync])
 
