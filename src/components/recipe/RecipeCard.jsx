@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ArchiveIcon, CalendarIcon, CheckIcon, DeleteIcon, EditIcon, FlameIcon, PotIcon, VideoUnavailableIcon } from '../icons'
+import { ArchiveIcon, CalendarIcon, CheckIcon, DeleteIcon, EditIcon, FlameIcon, PotIcon, QueueIcon, QueueRemoveIcon, VideoUnavailableIcon } from '../icons'
 import { formatDate } from '../../utils/date'
 import { parseRecipeVideo } from '../../utils/video'
 
@@ -179,7 +179,8 @@ export function RecipeCard({
                       onQueue()
                     }}
                   >
-                    В очередь
+                    {recipe.isQueued ? <QueueRemoveIcon className="h-3.5 w-3.5" /> : <QueueIcon className="h-3.5 w-3.5" />}
+                    {recipe.isQueued ? 'Убрать из очереди' : 'В очередь'}
                   </button>
                 </>
               )}

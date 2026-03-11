@@ -7,5 +7,7 @@ export { PotIcon } from './PotIcon'
 export { SortIcon } from './SortIcon'
 export { EditIcon } from './EditIcon'
 export { DeleteIcon } from './DeleteIcon'
+export { QueueIcon } from './QueueIcon'
+export { QueueRemoveIcon } from './QueueRemoveIcon'
 
 export { VideoUnavailableIcon } from './VideoUnavailableIcon'
