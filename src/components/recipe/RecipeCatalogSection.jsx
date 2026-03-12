@@ -154,6 +154,7 @@ export function RecipeCatalogSection({
       <RecipeList
         listRef={recipeListRef}
         recipes={paginatedRecipes}
+        searchQuery={debouncedSearchQuery}
         newRecipeIds={newRecipeIds}
         isArchiveView={showArchivedOnly}
         isLightweightView={isLightweightView}
