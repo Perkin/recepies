@@ -3,6 +3,32 @@ import { ArchiveIcon, CalendarIcon, CheckIcon, DeleteIcon, EditIcon, FlameIcon, 
 import { formatDate } from '../../utils/date'
 import { parseRecipeVideo } from '../../utils/video'
 
+
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+const highlightText = (text, query) => {
+  const normalizedQuery = query.trim()
+
+  if (!normalizedQuery || normalizedQuery.length < 3) {
+    return text
+  }
+
+  const matcher = new RegExp(`(${escapeRegExp(normalizedQuery)})`, 'gi')
+  const parts = text.split(matcher)
+
+  return parts.map((part, index) => {
+    if (part.toLowerCase() !== normalizedQuery.toLowerCase()) {
+      return part
+    }
+
+    return (
+      <mark key={`${part}-${index}`} className="rounded bg-amber-200 px-0.5 text-slate-900">
+        {part}
+      </mark>
+    )
+  })
+}
+
 export function RecipeCard({
   recipe,
   recipeId,
@@ -15,6 +41,7 @@ export function RecipeCard({
   onEdit,
   onDelete,
   isNew = false,
+  searchQuery = '',
 }) {
   const [isExpandedInLightweight, setIsExpandedInLightweight] = useState(false)
   const shouldShowFullCard = !isLightweightView || isExpandedInLightweight
@@ -60,7 +87,7 @@ export function RecipeCard({
                   new
                 </span>
               ) : null}
-              <h2 className="text-lg font-semibold leading-tight text-slate-100">{recipe.title}</h2>
+              <h2 className="text-lg font-semibold leading-tight text-slate-100">{highlightText(recipe.title, searchQuery)}</h2>
             </div>
           </div>
 
@@ -120,14 +147,14 @@ export function RecipeCard({
               </section>
               <section className="placeholder-box">
                 <p className="placeholder-title">Ингредиенты</p>
-                <pre className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-300">{recipe.ingredients}</pre>
+                <pre className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-300">{highlightText(recipe.ingredients ?? '', searchQuery)}</pre>
               </section>
             </div>
 
             {hasInstructions ? (
               <section className="placeholder-box mt-2">
                 <p className="placeholder-title">Инструкции</p>
-                <pre className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-300">{recipe.instructions}</pre>
+                <pre className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-300">{highlightText(recipe.instructions ?? '', searchQuery)}</pre>
               </section>
             ) : null}
           </>
@@ -244,7 +271,7 @@ export function RecipeCard({
                   new
                 </span>
               ) : null}
-              <p className="truncate text-sm font-semibold text-slate-100">{recipe.title}</p>
+              <p className="truncate text-sm font-semibold text-slate-100">{highlightText(recipe.title, searchQuery)}</p>
             </div>
           </div>
 

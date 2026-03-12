@@ -34,9 +34,25 @@ export function useRecipePagination({
       return visibleRecipes
     }
 
-    return visibleRecipes.filter((recipe) => {
-      return recipe.title.toLowerCase().includes(normalizedSearchQuery)
+    const titleMatches = []
+    const contentMatches = []
+
+    visibleRecipes.forEach((recipe) => {
+      const normalizedTitle = recipe.title.toLowerCase()
+      const normalizedIngredients = recipe.ingredients.toLowerCase()
+      const normalizedInstructions = recipe.instructions.toLowerCase()
+
+      if (normalizedTitle.includes(normalizedSearchQuery)) {
+        titleMatches.push(recipe)
+        return
+      }
+
+      if (normalizedIngredients.includes(normalizedSearchQuery) || normalizedInstructions.includes(normalizedSearchQuery)) {
+        contentMatches.push(recipe)
+      }
     })
+
+    return [...titleMatches, ...contentMatches]
   }, [isQuickSearchActive, normalizedSearchQuery, visibleRecipes])
 
   const totalPages = isQuickSearchActive ? 1 : Math.max(1, Math.ceil(filteredRecipes.length / RECIPES_PER_PAGE))

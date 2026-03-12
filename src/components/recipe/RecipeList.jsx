@@ -12,6 +12,7 @@ export function RecipeList({
   onDelete,
   listRef,
   newRecipeIds = [],
+  searchQuery = '',
 }) {
   return (
     <main ref={listRef} className="mt-4 grid gap-4">
@@ -29,6 +30,7 @@ export function RecipeList({
           onRestore={() => onRestore(recipe)}
           onEdit={() => onEdit(recipe)}
           onDelete={() => onDelete(recipe)}
+          searchQuery={searchQuery}
         />
       ))}
     </main>
