@@ -150,6 +150,27 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
   }, [runSync])
 
   useEffect(() => {
+    let isMounted = true
+
+    const restoreSessionAndSync = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (!isMounted) {
+        return
+      }
+
+      const sessionUser = session?.user ?? null
+      setCurrentUserEmail(sessionUser?.email ?? null)
+
+      if (sessionUser) {
+        runSync()
+      }
+    }
+
+    restoreSessionAndSync()
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -162,6 +183,7 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
     })
 
     return () => {
+      isMounted = false
       subscription.unsubscribe()
     }
   }, [runSync, setCurrentUserEmail])
