@@ -38,15 +38,18 @@ function areRecipesEqual(left, right) {
 export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEmail, onPulledNewRecipes }) {
   const syncTimeoutRef = useRef(null)
   const isSyncInProgressRef = useRef(false)
+  const hasPendingSyncRef = useRef(false)
   const hasShownSignedOutToastRef = useRef(false)
   const recipesRevisionRef = useRef(0)
 
   const runSync = useCallback(async () => {
     if (isSyncInProgressRef.current) {
+      hasPendingSyncRef.current = true
       return
     }
 
     isSyncInProgressRef.current = true
+    hasPendingSyncRef.current = false
     const syncStartRevision = recipesRevisionRef.current
 
     try {
@@ -101,6 +104,10 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
       addToast(`Supabase sync: ${error.message ?? 'Неизвестная ошибка'}`, 'error')
     } finally {
       isSyncInProgressRef.current = false
+
+      if (hasPendingSyncRef.current) {
+        runSync()
+      }
     }
   }, [addToast, onPulledNewRecipes, setCurrentUserEmail, setRecipes])
 
