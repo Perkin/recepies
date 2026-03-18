@@ -58,6 +58,7 @@ export default function App() {
   }, [])
 
   const { signIn, signOut, signUp } = useRecipeSync({
+    recipes,
     setRecipes,
     addToast,
     setCurrentUserEmail,
