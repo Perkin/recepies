@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { recipeRepository } from '../repositories/recipeRepository'
-import { signIn, signOut, signUp, supabase, syncRecipes } from '../utils/supabase'
+import { fetchRecipesSnapshot, signIn, signOut, signUp, supabase } from '../utils/supabase'
 
 function areRecipesEqual(left, right) {
   if (left === right) {
@@ -35,131 +35,15 @@ function areRecipesEqual(left, right) {
   })
 }
 
-export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEmail, onPulledNewRecipes }) {
-  const syncTimeoutRef = useRef(null)
-  const isSyncInProgressRef = useRef(false)
-  const hasPendingSyncRef = useRef(false)
+export function useRecipeSync({ setRecipes, addToast, setCurrentUserEmail, onPulledNewRecipes }) {
+  const hasLoadedRemoteRecipesRef = useRef(false)
   const hasShownSignedOutToastRef = useRef(false)
-  const recipesRevisionRef = useRef(0)
 
-  const runSync = useCallback(async () => {
-    if (isSyncInProgressRef.current) {
-      hasPendingSyncRef.current = true
-      return
-    }
-
-    isSyncInProgressRef.current = true
-    hasPendingSyncRef.current = false
-    const syncStartRevision = recipesRevisionRef.current
-
-    try {
-      const localRecipes = recipeRepository.getRecipes()
-      const localRecipeIds = new Set(localRecipes.map((recipe) => recipe.id))
-      const lastSyncTimestamp = recipeRepository.getLastSyncTimestamp()
-      const syncResult = await syncRecipes(localRecipes, lastSyncTimestamp)
-
-      if (syncResult.authStatus === 'signed_out') {
-        setCurrentUserEmail(null)
-
-        if (!hasShownSignedOutToastRef.current) {
-          addToast('Supabase sync: выполнен офлайн-режим, войдите для синхронизации', 'info')
-          hasShownSignedOutToastRef.current = true
-        }
-
-        return
-      }
-
-      hasShownSignedOutToastRef.current = false
-
-      if (syncStartRevision !== recipesRevisionRef.current) {
-        return
-      }
-
-      recipeRepository.saveLastSyncTimestamp(syncResult.lastSyncTimestamp)
-
-      setRecipes((currentRecipes) => {
-        if (areRecipesEqual(currentRecipes, syncResult.recipes)) {
-          return currentRecipes
-        }
-
-        recipeRepository.saveRecipes(syncResult.recipes)
-        return syncResult.recipes
-      })
-
-      const pulledNewRecipeIds = syncResult.recipes
-        .filter((recipe) => !localRecipeIds.has(recipe.id))
-        .map((recipe) => recipe.id)
-
-      if (pulledNewRecipeIds.length > 0) {
-        onPulledNewRecipes?.(pulledNewRecipeIds)
-      }
-
-      if (syncResult.stats.pushedCount || syncResult.stats.pulledCount) {
-        addToast(
-          `Supabase: отправлено ${syncResult.stats.pushedCount}, получено ${syncResult.stats.pulledCount}`,
-          'success',
-        )
-      }
-    } catch (error) {
-      addToast(`Supabase sync: ${error.message ?? 'Неизвестная ошибка'}`, 'error')
-    } finally {
-      isSyncInProgressRef.current = false
-
-      if (hasPendingSyncRef.current) {
-        runSync()
-      }
-    }
-  }, [addToast, onPulledNewRecipes, setCurrentUserEmail, setRecipes])
-
-  useEffect(() => {
-    recipesRevisionRef.current += 1
-    recipeRepository.saveRecipes(recipes)
-
-    if (syncTimeoutRef.current) {
-      window.clearTimeout(syncTimeoutRef.current)
-    }
-
-    syncTimeoutRef.current = window.setTimeout(() => {
-      runSync()
-    }, 800)
-
-    return () => {
-      if (syncTimeoutRef.current) {
-        window.clearTimeout(syncTimeoutRef.current)
-      }
-    }
-  }, [recipes, runSync])
-
-  useEffect(() => {
-    runSync()
-
-    const handleOnline = () => {
-      runSync()
-    }
-
-    const handleAppVisible = () => {
-      if (document.visibilityState === 'visible') {
-        runSync()
-      }
-    }
-
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('focus', handleAppVisible)
-    window.addEventListener('pageshow', handleAppVisible)
-    document.addEventListener('visibilitychange', handleAppVisible)
-
-    return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('focus', handleAppVisible)
-      window.removeEventListener('pageshow', handleAppVisible)
-      document.removeEventListener('visibilitychange', handleAppVisible)
-    }
-  }, [runSync])
 
   useEffect(() => {
     let isMounted = true
 
-    const restoreSessionAndSync = async () => {
+    const restoreSessionAndLoadRecipes = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession()
@@ -171,12 +55,47 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
       const sessionUser = session?.user ?? null
       setCurrentUserEmail(sessionUser?.email ?? null)
 
-      if (sessionUser) {
-        runSync()
+      if (!sessionUser || hasLoadedRemoteRecipesRef.current) {
+        return
+      }
+
+      hasLoadedRemoteRecipesRef.current = true
+
+      try {
+        const localRecipes = recipeRepository.getRecipes()
+        const localRecipeIds = new Set(localRecipes.map((recipe) => recipe.id))
+        const remoteRecipes = await fetchRecipesSnapshot(sessionUser.id)
+
+        if (!isMounted) {
+          return
+        }
+
+        setRecipes((currentRecipes) => {
+          if (areRecipesEqual(currentRecipes, remoteRecipes)) {
+            return currentRecipes
+          }
+
+          recipeRepository.saveRecipes(remoteRecipes)
+          return remoteRecipes
+        })
+
+        const pulledNewRecipeIds = remoteRecipes
+          .filter((recipe) => !localRecipeIds.has(recipe.id))
+          .map((recipe) => recipe.id)
+
+        if (pulledNewRecipeIds.length > 0) {
+          onPulledNewRecipes?.(pulledNewRecipeIds)
+        }
+      } catch (error) {
+        if (!isMounted) {
+          return
+        }
+
+        addToast(`Supabase sync: ${error.message ?? 'Неизвестная ошибка'}`, 'error')
       }
     }
 
-    restoreSessionAndSync()
+    restoreSessionAndLoadRecipes()
 
     const {
       data: { subscription },
@@ -184,8 +103,17 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
       const sessionUser = session?.user ?? null
       setCurrentUserEmail(sessionUser?.email ?? null)
 
-      if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && sessionUser) {
-        runSync()
+      if (event === 'SIGNED_OUT') {
+        hasLoadedRemoteRecipesRef.current = false
+
+        if (!hasShownSignedOutToastRef.current) {
+          addToast('Supabase sync: выполнен офлайн-режим, войдите для синхронизации', 'info')
+          hasShownSignedOutToastRef.current = true
+        }
+      }
+
+      if (event === 'SIGNED_IN') {
+        hasShownSignedOutToastRef.current = false
       }
     })
 
@@ -193,7 +121,7 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
       isMounted = false
       subscription.unsubscribe()
     }
-  }, [runSync, setCurrentUserEmail])
+  }, [addToast, onPulledNewRecipes, setCurrentUserEmail, setRecipes])
 
   return {
     signIn,
