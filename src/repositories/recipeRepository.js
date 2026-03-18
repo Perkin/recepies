@@ -37,6 +37,11 @@ export const recipeRepository = {
   },
 
   saveLastSyncTimestamp(timestamp) {
+    if (!timestamp) {
+      localStorage.removeItem(LAST_SYNC_TIMESTAMP_STORAGE_KEY)
+      return
+    }
+
     localStorage.setItem(LAST_SYNC_TIMESTAMP_STORAGE_KEY, timestamp)
   },
 
