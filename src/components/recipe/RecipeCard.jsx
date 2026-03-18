@@ -224,7 +224,7 @@ export function RecipeCard({
               </button>
             </div>
 
-            <div className="ml-auto grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+            <div className="ml-auto flex flex-wrap justify-end gap-2 sm:flex sm:flex-wrap sm:justify-end">
               {isArchiveView ? (
                 <button
                   type="button"
