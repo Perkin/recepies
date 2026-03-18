@@ -47,6 +47,7 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
   const latestRecipesRef = useRef(recipes)
   const hasCompletedInitialSyncRef = useRef(false)
   const lastProcessedLocalUpdateRef = useRef(recipeRepository.getLastLocalUpdateTimestamp())
+  const currentUserRef = useRef(undefined)
 
   latestRecipesRef.current = recipes
 
@@ -65,7 +66,7 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
       const { recipes: syncedRecipes, lastSyncTimestamp, authStatus } = await syncRecipes(
         currentRecipes,
         recipeRepository.getLastSyncTimestamp(),
-        { pullRemote },
+        { pullRemote, currentUser: currentUserRef.current },
       )
 
       recipeRepository.saveRecipes(syncedRecipes)
@@ -109,6 +110,7 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
       }
 
       const sessionUser = session?.user ?? null
+      currentUserRef.current = sessionUser
       setCurrentUserEmail(sessionUser?.email ?? null)
       hasRestoredSessionRef.current = true
       void runSync({ pullRemote: true })
@@ -120,6 +122,7 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       const sessionUser = session?.user ?? null
+      currentUserRef.current = sessionUser
       setCurrentUserEmail(sessionUser?.email ?? null)
 
       if (event === 'SIGNED_OUT') {
