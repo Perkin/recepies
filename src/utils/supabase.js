@@ -92,6 +92,18 @@ function fromDbRecipe(recipe) {
   }
 }
 
+
+export async function fetchRecipesSnapshot(userId) {
+  const { data, error } = await supabase
+    .from(RECIPES_TABLE)
+    .select('*')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false })
+
+  if (error) throw error
+
+  return (data ?? []).map(fromDbRecipe)
+}
 function normalizeTimestamp(timestamp) {
   return timestamp ?? INITIAL_SYNC_TIMESTAMP
 }

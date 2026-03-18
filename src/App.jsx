@@ -58,7 +58,6 @@ export default function App() {
   }, [])
 
   const { signIn, signOut, signUp } = useRecipeSync({
-    recipes,
     setRecipes,
     addToast,
     setCurrentUserEmail,
@@ -66,6 +65,10 @@ export default function App() {
       setNewRecipeIds((prevIds) => [...new Set([...prevIds, ...pulledIds])])
     },
   })
+
+  useEffect(() => {
+    recipeRepository.saveRecipes(recipes)
+  }, [recipes])
 
   useEffect(() => {
     if (!returnScrollRecipeId) {
