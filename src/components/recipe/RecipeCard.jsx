@@ -263,33 +263,54 @@ export function RecipeCard({
           </div>
         </>
       ) : (
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 min-w-0">
-              {isNew ? (
-                <span className="rounded-md border border-amber-300/80 bg-amber-300/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-100">
-                  new
-                </span>
-              ) : null}
-              <p className="truncate text-sm font-semibold text-slate-100">{highlightText(recipe.title, searchQuery)}</p>
+        <>
+          <div className="grid gap-2 sm:hidden">
+            <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
+                {isNew ? (
+                  <span className="rounded-md border border-amber-300/80 bg-amber-300/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-100">
+                    new
+                  </span>
+                ) : null}
+                <p className="text-sm font-semibold leading-tight text-slate-100 break-words">{highlightText(recipe.title, searchQuery)}</p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-200 tabular-nums">
+              <span className="whitespace-nowrap">Добавлен: {formatDate(recipe.createdAt)}</span>
+              <span className="whitespace-nowrap">Готовили: {recipe.cookCount}</span>
+              <span className="whitespace-nowrap">Последняя готовка: {lastCookedCompact}</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-[5.5rem_4.5rem_5.5rem] gap-2 text-center tabular-nums">
-            <div className="grid">
-              <span className="text-[10px] uppercase tracking-wide text-slate-400">Доб.</span>
-              <span className="truncate text-xs text-slate-200">{formatDate(recipe.createdAt)}</span>
+          <div className="hidden grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:grid">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 min-w-0">
+                {isNew ? (
+                  <span className="rounded-md border border-amber-300/80 bg-amber-300/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-100">
+                    new
+                  </span>
+                ) : null}
+                <p className="truncate text-sm font-semibold text-slate-100">{highlightText(recipe.title, searchQuery)}</p>
+              </div>
             </div>
-            <div className="grid">
-              <span className="text-[10px] uppercase tracking-wide text-slate-400">Раз</span>
-              <span className="truncate text-xs text-slate-200">{recipe.cookCount}</span>
-            </div>
-            <div className="grid">
-              <span className="text-[10px] uppercase tracking-wide text-slate-400">Посл.</span>
-              <span className="truncate text-xs text-slate-200">{lastCookedCompact}</span>
+
+            <div className="grid grid-cols-[5.5rem_4.5rem_5.5rem] gap-2 text-center tabular-nums">
+              <div className="grid">
+                <span className="text-[10px] uppercase tracking-wide text-slate-400">Доб.</span>
+                <span className="truncate text-xs text-slate-200">{formatDate(recipe.createdAt)}</span>
+              </div>
+              <div className="grid">
+                <span className="text-[10px] uppercase tracking-wide text-slate-400">Раз</span>
+                <span className="truncate text-xs text-slate-200">{recipe.cookCount}</span>
+              </div>
+              <div className="grid">
+                <span className="text-[10px] uppercase tracking-wide text-slate-400">Посл.</span>
+                <span className="truncate text-xs text-slate-200">{lastCookedCompact}</span>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
     </article>
