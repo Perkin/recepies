@@ -40,11 +40,11 @@
   }
 
   .btn-compact {
-    @apply rounded-lg px-3 py-1.5 text-xs;
+    @apply rounded-lg px-3 py-1.5 text-xs leading-tight;
   }
 
   .btn-mobile-tertiary {
-    @apply px-3 py-1.5 text-xs;
+    @apply px-3 py-1.5 text-xs leading-tight;
   }
 
   .btn-danger {
@@ -79,8 +79,16 @@
     gap: 0.25rem;
   }
 
+  .btn-compact {
+    @apply min-h-8 gap-1 rounded-md px-2 py-1 text-[11px];
+  }
+
+  .btn-compact svg {
+    @apply h-3 w-3 shrink-0;
+  }
+
   .btn-mobile-tertiary {
-    @apply gap-1 rounded-md px-2 py-1 text-[11px];
+    @apply min-h-8 gap-1 rounded-md px-2 py-1 text-[11px];
   }
 
   .btn-mobile-tertiary svg {

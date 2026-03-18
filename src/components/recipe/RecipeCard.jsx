@@ -183,37 +183,45 @@ export function RecipeCard({
             </div>
           </dl>
 
-          <div className="mt-3 flex flex-wrap gap-2">
-            <div className="grid flex-1 grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:flex-none">
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:flex-none">
               {isArchiveView ? null : (
                 <>
                   <button
                     type="button"
-                    className="btn-primary btn-emphasis btn-compact justify-center"
+                    className="btn-primary btn-emphasis btn-compact min-w-0 justify-center whitespace-nowrap"
                     onClick={(event) => {
                       event.stopPropagation()
                       onCooked()
                     }}
                   >
                     <CheckIcon className="h-3.5 w-3.5" />
-                    Приготовлено
+                    <span className="sm:hidden">Готово</span>
+                    <span className="hidden sm:inline">Приготовлено</span>
                   </button>
                   <button
                     type="button"
-                    className={`btn-compact justify-center ${recipe.isQueued ? 'btn-primary' : 'btn-secondary'}`}
+                    className={`btn-compact min-w-0 justify-center ${recipe.isQueued ? 'btn-primary' : 'btn-secondary'}`}
                     onClick={(event) => {
                       event.stopPropagation()
                       onQueue()
                     }}
                   >
                     {recipe.isQueued ? <QueueRemoveIcon className="h-3.5 w-3.5" /> : <QueueIcon className="h-3.5 w-3.5" />}
-                    {recipe.isQueued ? 'Убрать из очереди' : 'В очередь'}
+                    {recipe.isQueued ? (
+                      <>
+                        <span className="sm:hidden">Убрать</span>
+                        <span className="hidden sm:inline">Убрать из очереди</span>
+                      </>
+                    ) : (
+                      'В очередь'
+                    )}
                   </button>
                 </>
               )}
               <button
                 type="button"
-                className="btn-secondary btn-compact justify-center"
+                className="btn-secondary btn-compact min-w-0 justify-center"
                 onClick={(event) => {
                   event.stopPropagation()
                   onEdit()
@@ -224,11 +232,11 @@ export function RecipeCard({
               </button>
             </div>
 
-            <div className="ml-auto flex flex-wrap justify-end gap-2 sm:flex sm:flex-wrap sm:justify-end">
+            <div className="grid w-full grid-cols-2 gap-2 sm:ml-auto sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
               {isArchiveView ? (
                 <button
                   type="button"
-                  className="btn-secondary btn-compact justify-center"
+                  className="btn-secondary btn-compact min-w-0 justify-center"
                   onClick={(event) => {
                     event.stopPropagation()
                     onRestore()
@@ -239,18 +247,20 @@ export function RecipeCard({
               ) : (
                 <button
                   type="button"
-                  className="btn-secondary btn-compact btn-mobile-tertiary justify-center"
+                  className="btn-secondary btn-compact btn-mobile-tertiary min-w-0 justify-center"
                   onClick={(event) => {
                     event.stopPropagation()
                     onArchive()
                   }}
                 >
-                  <ArchiveIcon className="h-3.5 w-3.5" />В архив
+                  <ArchiveIcon className="h-3.5 w-3.5" />
+                  <span className="sm:hidden">Архив</span>
+                  <span className="hidden sm:inline">В архив</span>
                 </button>
               )}
               <button
                 type="button"
-                className="btn-secondary btn-compact btn-mobile-tertiary btn-danger justify-center"
+                className="btn-secondary btn-compact btn-mobile-tertiary btn-danger min-w-0 justify-center"
                 onClick={(event) => {
                   event.stopPropagation()
                   onDelete()
