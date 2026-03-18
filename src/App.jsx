@@ -67,9 +67,17 @@ export default function App() {
     },
   })
 
-  useEffect(() => {
-    recipeRepository.saveRecipes(recipes)
-  }, [recipes])
+  const applyLocalRecipesChange = useCallback((updater) => {
+    setRecipes((prevRecipes) => {
+      const nextRecipes = typeof updater === 'function' ? updater(prevRecipes) : updater
+      const localUpdateTimestamp = new Date().toISOString()
+
+      recipeRepository.saveRecipes(nextRecipes)
+      recipeRepository.saveLastLocalUpdateTimestamp(localUpdateTimestamp)
+
+      return nextRecipes
+    })
+  }, [])
 
   useEffect(() => {
     if (!returnScrollRecipeId) {
@@ -176,7 +184,7 @@ export default function App() {
         return
       }
 
-      setRecipes((prev) =>
+      applyLocalRecipesChange((prev) =>
         prev.map((recipe) =>
           recipe.id === editingId
             ? {
@@ -191,7 +199,7 @@ export default function App() {
       return
     }
 
-    setRecipes((prev) => [
+    applyLocalRecipesChange((prev) => [
       {
         id: crypto.randomUUID(),
         createdAt: now,
@@ -210,7 +218,7 @@ export default function App() {
 
   const handleCooked = (recipe) => {
     const now = new Date().toISOString()
-    setRecipes((prev) =>
+    applyLocalRecipesChange((prev) =>
       prev.map((item) =>
         item.id === recipe.id
           ? {
@@ -227,7 +235,7 @@ export default function App() {
 
   const handleQueue = (recipe) => {
     const now = new Date().toISOString()
-    setRecipes((prev) =>
+    applyLocalRecipesChange((prev) =>
       prev.map((item) =>
         item.id === recipe.id
           ? {
@@ -242,14 +250,14 @@ export default function App() {
 
   const handleArchive = (recipe) => {
     const now = new Date().toISOString()
-    setRecipes((prev) =>
+    applyLocalRecipesChange((prev) =>
       prev.map((item) => (item.id === recipe.id ? { ...item, isArchived: true, updatedAt: now } : item)),
     )
   }
 
   const handleRestore = (recipe) => {
     const now = new Date().toISOString()
-    setRecipes((prev) =>
+    applyLocalRecipesChange((prev) =>
       prev.map((item) => (item.id === recipe.id ? { ...item, isArchived: false, updatedAt: now } : item)),
     )
   }
@@ -277,7 +285,7 @@ export default function App() {
     }
 
     const now = new Date().toISOString()
-    setRecipes((prev) =>
+    applyLocalRecipesChange((prev) =>
       prev.map((item) =>
         item.id === recipePendingDeletion.id ? { ...item, deletedAt: now, updatedAt: now } : item,
       ),

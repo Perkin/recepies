@@ -44,13 +44,13 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
   const isSyncingRef = useRef(false)
   const pendingSyncRef = useRef(false)
   const lastSyncedFingerprintRef = useRef(null)
-  const lastRequestedSyncFingerprintRef = useRef(null)
   const latestRecipesRef = useRef(recipes)
   const hasCompletedInitialSyncRef = useRef(false)
+  const lastProcessedLocalUpdateRef = useRef(recipeRepository.getLastLocalUpdateTimestamp())
 
   latestRecipesRef.current = recipes
 
-  const runSync = useCallback(async () => {
+  const runSync = useCallback(async ({ pullRemote } = { pullRemote: true }) => {
     if (isSyncingRef.current) {
       pendingSyncRef.current = true
       return
@@ -65,12 +65,12 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
       const { recipes: syncedRecipes, lastSyncTimestamp, authStatus } = await syncRecipes(
         currentRecipes,
         recipeRepository.getLastSyncTimestamp(),
+        { pullRemote },
       )
 
       recipeRepository.saveRecipes(syncedRecipes)
       recipeRepository.saveLastSyncTimestamp(lastSyncTimestamp)
       lastSyncedFingerprintRef.current = JSON.stringify(syncedRecipes)
-      lastRequestedSyncFingerprintRef.current = null
 
       setRecipes((existingRecipes) => (areRecipesEqual(existingRecipes, syncedRecipes) ? existingRecipes : syncedRecipes))
       hasCompletedInitialSyncRef.current = true
@@ -91,7 +91,7 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
 
       if (pendingSyncRef.current) {
         pendingSyncRef.current = false
-        void runSync()
+        void runSync({ pullRemote })
       }
     }
   }, [addToast, onPulledNewRecipes, setRecipes])
@@ -111,7 +111,7 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
       const sessionUser = session?.user ?? null
       setCurrentUserEmail(sessionUser?.email ?? null)
       hasRestoredSessionRef.current = true
-      void runSync()
+      void runSync({ pullRemote: true })
     }
 
     restoreSession()
@@ -136,8 +136,8 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
         hasShownSignedOutToastRef.current = false
       }
 
-      if (hasRestoredSessionRef.current) {
-        void runSync()
+      if (hasRestoredSessionRef.current && event === 'SIGNED_IN') {
+        void runSync({ pullRemote: true })
       }
     })
 
@@ -152,21 +152,22 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
       return undefined
     }
 
+    const localUpdateTimestamp = recipeRepository.getLastLocalUpdateTimestamp()
+
+    if (!localUpdateTimestamp || localUpdateTimestamp === lastProcessedLocalUpdateRef.current) {
+      return undefined
+    }
+
     const fingerprint = JSON.stringify(recipes)
 
     if (fingerprint === lastSyncedFingerprintRef.current) {
-      lastRequestedSyncFingerprintRef.current = null
+      lastProcessedLocalUpdateRef.current = localUpdateTimestamp
       return undefined
     }
-
-    if (fingerprint === lastRequestedSyncFingerprintRef.current) {
-      return undefined
-    }
-
-    lastRequestedSyncFingerprintRef.current = fingerprint
 
     syncTimeoutRef.current = window.setTimeout(() => {
-      void runSync()
+      lastProcessedLocalUpdateRef.current = localUpdateTimestamp
+      void runSync({ pullRemote: false })
     }, SYNC_DELAY_MS)
 
     return () => {

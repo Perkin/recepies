@@ -1,4 +1,9 @@
-import { LAST_SYNC_TIMESTAMP_STORAGE_KEY, LIGHTWEIGHT_VIEW_STORAGE_KEY, STORAGE_KEY } from '../constants/recipes'
+import {
+  LAST_LOCAL_UPDATE_STORAGE_KEY,
+  LAST_SYNC_TIMESTAMP_STORAGE_KEY,
+  LIGHTWEIGHT_VIEW_STORAGE_KEY,
+  STORAGE_KEY,
+} from '../constants/recipes'
 
 function readJson(key, fallbackValue) {
   const raw = localStorage.getItem(key)
@@ -43,6 +48,19 @@ export const recipeRepository = {
     }
 
     localStorage.setItem(LAST_SYNC_TIMESTAMP_STORAGE_KEY, timestamp)
+  },
+
+  getLastLocalUpdateTimestamp() {
+    return localStorage.getItem(LAST_LOCAL_UPDATE_STORAGE_KEY)
+  },
+
+  saveLastLocalUpdateTimestamp(timestamp) {
+    if (!timestamp) {
+      localStorage.removeItem(LAST_LOCAL_UPDATE_STORAGE_KEY)
+      return
+    }
+
+    localStorage.setItem(LAST_LOCAL_UPDATE_STORAGE_KEY, timestamp)
   },
 
   getIsLightweightView() {
