@@ -180,7 +180,8 @@ export async function pushPendingChanges(localRecipes, lastSyncTimestamp, userId
   }
 }
 
-export async function syncRecipes(localRecipes, lastSyncTimestamp) {
+export async function syncRecipes(localRecipes, lastSyncTimestamp, options = {}) {
+  const { pullRemote = true } = options
   const normalizedLocalRecipes = localRecipes.map((recipe) => ({
     ...recipe,
     deletedAt: recipe.deletedAt ?? null,
@@ -202,7 +203,7 @@ export async function syncRecipes(localRecipes, lastSyncTimestamp) {
     }
   }
 
-  const updates = await fetchUpdates(currentUser.id, initialTimestamp)
+  const updates = pullRemote ? await fetchUpdates(currentUser.id, initialTimestamp) : []
   const mergedRecipes = mergeRecipes(normalizedLocalRecipes, updates)
   const { pushedCount, pushedRecipes } = await pushPendingChanges(mergedRecipes, initialTimestamp, currentUser.id, updates)
   const syncedRecipes = mergeRecipes(mergedRecipes, pushedRecipes)
