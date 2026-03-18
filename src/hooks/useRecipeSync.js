@@ -44,6 +44,7 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
   const isSyncingRef = useRef(false)
   const pendingSyncRef = useRef(false)
   const lastSyncedFingerprintRef = useRef(null)
+  const lastRequestedSyncFingerprintRef = useRef(null)
   const latestRecipesRef = useRef(recipes)
   const hasCompletedInitialSyncRef = useRef(false)
 
@@ -69,6 +70,7 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
       recipeRepository.saveRecipes(syncedRecipes)
       recipeRepository.saveLastSyncTimestamp(lastSyncTimestamp)
       lastSyncedFingerprintRef.current = JSON.stringify(syncedRecipes)
+      lastRequestedSyncFingerprintRef.current = null
 
       setRecipes((existingRecipes) => (areRecipesEqual(existingRecipes, syncedRecipes) ? existingRecipes : syncedRecipes))
       hasCompletedInitialSyncRef.current = true
@@ -153,8 +155,15 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
     const fingerprint = JSON.stringify(recipes)
 
     if (fingerprint === lastSyncedFingerprintRef.current) {
+      lastRequestedSyncFingerprintRef.current = null
       return undefined
     }
+
+    if (fingerprint === lastRequestedSyncFingerprintRef.current) {
+      return undefined
+    }
+
+    lastRequestedSyncFingerprintRef.current = fingerprint
 
     syncTimeoutRef.current = window.setTimeout(() => {
       void runSync()

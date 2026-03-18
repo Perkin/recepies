@@ -162,6 +162,20 @@ export default function App() {
     const now = new Date().toISOString()
 
     if (editingId) {
+      const recipeBeforeEdit = recipes.find((recipe) => recipe.id === editingId)
+
+      if (
+        recipeBeforeEdit &&
+        recipeBeforeEdit.title === formValues.title &&
+        recipeBeforeEdit.ingredients === formValues.ingredients &&
+        recipeBeforeEdit.instructions === formValues.instructions &&
+        (recipeBeforeEdit.videoUrl ?? '') === formValues.videoUrl &&
+        recipeBeforeEdit.isQueued === formValues.isQueued
+      ) {
+        closeForm({ shouldReturnToCard: true })
+        return
+      }
+
       setRecipes((prev) =>
         prev.map((recipe) =>
           recipe.id === editingId
