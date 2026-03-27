@@ -101,19 +101,30 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
     let isMounted = true
 
     const restoreSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
 
-      if (!isMounted) {
-        return
+        if (!isMounted) {
+          return
+        }
+
+        const sessionUser = session?.user ?? null
+        currentUserRef.current = sessionUser
+        setCurrentUserEmail(sessionUser?.email ?? null)
+      } catch (error) {
+        if (isMounted) {
+          addToast(`Supabase auth: ${error.message ?? 'Не удалось восстановить сессию'}`, 'error')
+        }
+      } finally {
+        if (!isMounted) {
+          return
+        }
+
+        hasRestoredSessionRef.current = true
+        void runSync({ pullRemote: true })
       }
-
-      const sessionUser = session?.user ?? null
-      currentUserRef.current = sessionUser
-      setCurrentUserEmail(sessionUser?.email ?? null)
-      hasRestoredSessionRef.current = true
-      void runSync({ pullRemote: true })
     }
 
     restoreSession()
@@ -139,14 +150,35 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
         hasShownSignedOutToastRef.current = false
       }
 
-      if (hasRestoredSessionRef.current && event === 'SIGNED_IN') {
+      if (hasRestoredSessionRef.current && ['SIGNED_IN', 'INITIAL_SESSION', 'TOKEN_REFRESHED'].includes(event)) {
         void runSync({ pullRemote: true })
       }
     })
 
+    const handleWindowFocus = () => {
+      if (!hasRestoredSessionRef.current) {
+        return
+      }
+
+      void runSync({ pullRemote: true })
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== 'visible' || !hasRestoredSessionRef.current) {
+        return
+      }
+
+      void runSync({ pullRemote: true })
+    }
+
+    window.addEventListener('focus', handleWindowFocus)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
     return () => {
       isMounted = false
       subscription.unsubscribe()
+      window.removeEventListener('focus', handleWindowFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [addToast, runSync, setCurrentUserEmail])
 
