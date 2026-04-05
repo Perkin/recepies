@@ -16,8 +16,14 @@ export function useRecipePagination({
   const visibleRecipes = useMemo(() => {
     const sorted = [...recipes].sort((a, b) => {
       if (a.isQueued !== b.isQueued) return a.isQueued ? -1 : 1
+
       const baseResult = recipeSorters[sortField](a, b)
-      return sortDirection === 'asc' ? baseResult : -baseResult
+
+      if (baseResult !== 0) {
+        return sortDirection === 'asc' ? baseResult : -baseResult
+      }
+
+      return a.id.localeCompare(b.id)
     })
 
     return sorted.filter((recipe) => {
