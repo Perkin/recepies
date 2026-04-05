@@ -129,7 +129,23 @@ function mergeRecipes(localRecipes, remoteRecipes) {
     }
   }
 
-  return [...byId.values()]
+  return [...byId.values()].sort((left, right) => {
+    const leftUpdatedAt = left.updatedAt ?? ''
+    const rightUpdatedAt = right.updatedAt ?? ''
+
+    if (leftUpdatedAt !== rightUpdatedAt) {
+      return rightUpdatedAt.localeCompare(leftUpdatedAt)
+    }
+
+    const leftCreatedAt = left.createdAt ?? ''
+    const rightCreatedAt = right.createdAt ?? ''
+
+    if (leftCreatedAt !== rightCreatedAt) {
+      return rightCreatedAt.localeCompare(leftCreatedAt)
+    }
+
+    return left.id.localeCompare(right.id)
+  })
 }
 
 export async function fetchUpdates(userId, lastSyncTimestamp) {
