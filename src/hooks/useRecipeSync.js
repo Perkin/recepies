@@ -4,6 +4,44 @@ import { signIn, signOut, signUp, supabase, syncRecipes } from '../utils/supabas
 
 const SYNC_DELAY_MS = 750
 
+function mergeRecipesByNewestUpdate(localRecipes, syncedRecipes) {
+  const recipesById = new Map(localRecipes.map((recipe) => [recipe.id, recipe]))
+
+  syncedRecipes.forEach((syncedRecipe) => {
+    const localRecipe = recipesById.get(syncedRecipe.id)
+
+    if (!localRecipe) {
+      recipesById.set(syncedRecipe.id, syncedRecipe)
+      return
+    }
+
+    const localUpdatedAt = localRecipe.updatedAt ?? localRecipe.createdAt ?? ''
+    const syncedUpdatedAt = syncedRecipe.updatedAt ?? syncedRecipe.createdAt ?? ''
+
+    if (syncedUpdatedAt > localUpdatedAt) {
+      recipesById.set(syncedRecipe.id, syncedRecipe)
+    }
+  })
+
+  return [...recipesById.values()].sort((left, right) => {
+    const leftUpdatedAt = left.updatedAt ?? left.createdAt ?? ''
+    const rightUpdatedAt = right.updatedAt ?? right.createdAt ?? ''
+
+    if (leftUpdatedAt !== rightUpdatedAt) {
+      return rightUpdatedAt.localeCompare(leftUpdatedAt)
+    }
+
+    const leftCreatedAt = left.createdAt ?? ''
+    const rightCreatedAt = right.createdAt ?? ''
+
+    if (leftCreatedAt !== rightCreatedAt) {
+      return rightCreatedAt.localeCompare(leftCreatedAt)
+    }
+
+    return left.id.localeCompare(right.id)
+  })
+}
+
 function areRecipesEqual(left, right) {
   if (left === right) {
     return true
@@ -61,6 +99,7 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
 
     try {
       const currentRecipes = latestRecipesRef.current
+      const syncStartLocalTimestamp = recipeRepository.getLastLocalUpdateTimestamp()
       const previousRecipes = recipeRepository.getRecipes()
       const previousRecipeIds = new Set(previousRecipes.map((recipe) => recipe.id))
       const { recipes: syncedRecipes, lastSyncTimestamp, authStatus } = await syncRecipes(
@@ -68,16 +107,24 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
         recipeRepository.getLastSyncTimestamp(),
         { pullRemote, currentUser: currentUserRef.current },
       )
+      const localTimestampAfterSync = recipeRepository.getLastLocalUpdateTimestamp()
+      const shouldMergeWithLatestLocal =
+        Boolean(syncStartLocalTimestamp) &&
+        localTimestampAfterSync &&
+        localTimestampAfterSync !== syncStartLocalTimestamp
+      const finalRecipes = shouldMergeWithLatestLocal
+        ? mergeRecipesByNewestUpdate(latestRecipesRef.current, syncedRecipes)
+        : syncedRecipes
 
-      recipeRepository.saveRecipes(syncedRecipes)
+      recipeRepository.saveRecipes(finalRecipes)
       recipeRepository.saveLastSyncTimestamp(lastSyncTimestamp)
-      lastSyncedFingerprintRef.current = JSON.stringify(syncedRecipes)
+      lastSyncedFingerprintRef.current = JSON.stringify(finalRecipes)
 
-      setRecipes((existingRecipes) => (areRecipesEqual(existingRecipes, syncedRecipes) ? existingRecipes : syncedRecipes))
+      setRecipes((existingRecipes) => (areRecipesEqual(existingRecipes, finalRecipes) ? existingRecipes : finalRecipes))
       hasCompletedInitialSyncRef.current = true
 
       if (authStatus === 'signed_in') {
-        const pulledNewRecipeIds = syncedRecipes
+        const pulledNewRecipeIds = finalRecipes
           .filter((recipe) => !previousRecipeIds.has(recipe.id))
           .map((recipe) => recipe.id)
 
@@ -118,12 +165,10 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
           addToast(`Supabase auth: ${error.message ?? 'Не удалось восстановить сессию'}`, 'error')
         }
       } finally {
-        if (!isMounted) {
-          return
+        if (isMounted) {
+          hasRestoredSessionRef.current = true
+          void runSync({ pullRemote: true })
         }
-
-        hasRestoredSessionRef.current = true
-        void runSync({ pullRemote: true })
       }
     }
 
