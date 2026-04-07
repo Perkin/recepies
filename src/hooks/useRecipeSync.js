@@ -119,6 +119,7 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
       recipeRepository.saveRecipes(finalRecipes)
       recipeRepository.saveLastSyncTimestamp(lastSyncTimestamp)
       lastSyncedFingerprintRef.current = JSON.stringify(finalRecipes)
+      latestRecipesRef.current = finalRecipes
 
       setRecipes((existingRecipes) => (areRecipesEqual(existingRecipes, finalRecipes) ? existingRecipes : finalRecipes))
       hasCompletedInitialSyncRef.current = true
@@ -195,7 +196,7 @@ export function useRecipeSync({ recipes, setRecipes, addToast, setCurrentUserEma
         hasShownSignedOutToastRef.current = false
       }
 
-      if (hasRestoredSessionRef.current && ['SIGNED_IN', 'INITIAL_SESSION', 'TOKEN_REFRESHED'].includes(event)) {
+      if (['SIGNED_IN', 'INITIAL_SESSION', 'TOKEN_REFRESHED'].includes(event)) {
         void runSync({ pullRemote: true })
       }
     })
