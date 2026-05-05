@@ -1,3 +1,29 @@
+import { useLayoutEffect, useRef } from 'react'
+
+function AutoResizeTextarea({ value, onChange, ...props }) {
+  const textareaRef = useRef(null)
+
+  useLayoutEffect(() => {
+    const textarea = textareaRef.current
+
+    if (!textarea) {
+      return
+    }
+
+    textarea.style.height = 'auto'
+    textarea.style.height = `${textarea.scrollHeight}px`
+  }, [value])
+
+  return (
+    <textarea
+      {...props}
+      ref={textareaRef}
+      value={value}
+      onChange={onChange}
+    />
+  )
+}
+
 export function RecipeFormSection({
   isEditing,
   values,
@@ -28,8 +54,8 @@ export function RecipeFormSection({
         </label>
         <label className="text-sm text-slate-200">
           Ингредиенты
-          <textarea
-            className="input-base mt-1 min-h-24"
+          <AutoResizeTextarea
+            className="input-base mt-1 min-h-24 resize-none overflow-hidden"
             placeholder="Ингредиенты"
             value={values.ingredients}
             onChange={updateField('ingredients')}
@@ -37,8 +63,8 @@ export function RecipeFormSection({
         </label>
         <label className="text-sm text-slate-200">
           Инструкции
-          <textarea
-            className="input-base mt-1 min-h-24"
+          <AutoResizeTextarea
+            className="input-base mt-1 min-h-24 resize-none overflow-hidden"
             placeholder="Инструкции"
             value={values.instructions}
             onChange={updateField('instructions')}
